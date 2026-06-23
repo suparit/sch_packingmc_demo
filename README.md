@@ -28,6 +28,23 @@ Contributors must follow these rules:
 
 All contributions will be reviewed before acceptance.
 
+## Collaboration Model
+
+This project is developed as an open sandbox collaboration between the mentor and students.
+
+- Students develop their work as part of academic requirements
+- All outputs are independent and owned by contributors
+- This project does not involve any company proprietary data
+- The mentor provides system-level guidance and co-engineering support
+
+Credits:
+- Students: primary contributors (implementation)
+- Mentor: system architecture and guidance
+All contributions are original work by the contributors and intended for educational and experimental purposes only.
+
+
+
+
 
 ## System Overview
 
