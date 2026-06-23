@@ -1,4 +1,16 @@
+
+
+
 # SMD Reel Packing Machine
+
+## What This Repo Is
+
+This is a lightweight Digital Twin system for SMD Reel Packing Machine:
+- Process definition
+- State machine
+- 3D visualization
+- Local simulation
+
 
 ## START
 - Power ON
