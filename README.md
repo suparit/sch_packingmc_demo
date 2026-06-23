@@ -187,8 +187,9 @@ Recommended reading order:
   → docs/decisions/ADR_001_encoder_counter.md
 
 ### 🔄 TODO
-- ADR-002: Motor Selection
-- ADR-003: Pin Mechanism Design
-- ADR-004: Sensor Selection
+- ADR-004: Incremental encoder Selection
+- ADR-005: Pin Mechanism Design
+- ADR-006: Motor Selection
+- ADR-007: Sensor Selection
 
 
