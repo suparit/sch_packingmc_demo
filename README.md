@@ -13,6 +13,9 @@ This is a lightweight Digital Twin system for SMD Reel Packing Machine:
 ## System Overview
 
 The system integrates mechanical, electrical, and control components to achieve precise tape positioning for SMD reel packing.
+
+
+```
 [Stepper Motor]
        ↓
 [Incremental Encoder]
@@ -22,6 +25,9 @@ The system integrates mechanical, electrical, and control components to achieve 
 [Control Logic]
        ↓
 [Pin Mechanism (Final Alignment)]
+```
+
+
 > **Key Principle**
 > Final positioning accuracy is ensured by the mechanical pin, not by the encoder alone.
 
