@@ -177,3 +177,9 @@ Recommended reading order:
 2. FSM (logic)
 3. 3D Viewer (visual)
 4. Architecture (design)
+
+## Hardware Selection
+
+- Encoder & Counter System  
+  → docs/hardware_selection/encoder_counter_system.md
+
