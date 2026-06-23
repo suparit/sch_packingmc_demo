@@ -128,6 +128,41 @@ Modbus → Web integration
 Multi-axis motion
 Full Digital Twin synchronization
 
+---
+
+## Knowledge Map (Start Here)
+
+This repository is organized into several parts:
+
+### 1. Machine Process
+- README.md
+- Defines full machine workflow (START → STOP)
+
+### 2. State Machine (Control Logic)
+- SMD Reel Packing FSM (Simple).md
+- Defines machine states and transitions
+
+### 3. 3D Digital Twin (Visualization)
+- cad/
+- viewer.html → online view
+- viewer_local.html → local simulation
+
+### 4. Control & Test
+- demo_001.py → Modbus / IO test
+- run_server.bat → local web server
+
+### 5. Architecture & Design
+- ARCHITECTURE_3D_TWIN.md → system design
+- Lightweight Digital Twin Roadmap.md → future direction
+
+### 6. Project Plan
+- projectplan.md → timeline and progress
 
 ---
- 
+
+Recommended reading order:
+
+1. Machine Process (this file)
+2. FSM (logic)
+3. 3D Viewer (visual)
+4. Architecture (design)
