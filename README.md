@@ -99,8 +99,7 @@ http://localhost:8080/cad/viewer_local.html
 #### Method 2 (Manual)
 
 Run:
-
-```bash
+bash
 python -m http.server 8080
 
 Open:
