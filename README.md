@@ -43,6 +43,18 @@ Credits:
 All contributions are original work by the contributors and intended for educational and experimental purposes only.
 
 
+## Framework
+
+This project is developed under the concept of:
+
+**AI-Assisted Co-Engineering System**
+
+A framework that combines:
+- Human collaboration
+- AI-assisted development
+- System-level architecture
+
+to enable scalable engineering development in a sandbox environment.
 
 
 
