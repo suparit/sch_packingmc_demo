@@ -181,6 +181,14 @@ Recommended reading order:
 
 ## Architecture Decision Records (ADR)
 
+
+### ✅ Completed
 - ADR-001: Encoder and Counter Selection  
   → docs/decisions/ADR_001_encoder_counter.md
+
+### 🔄 TODO
+- ADR-002: Motor Selection
+- ADR-003: Pin Mechanism Design
+- ADR-004: Sensor Selection
+
 
