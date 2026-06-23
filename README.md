@@ -178,8 +178,9 @@ Recommended reading order:
 3. 3D Viewer (visual)
 4. Architecture (design)
 
-## Hardware Selection
 
-- Encoder & Counter System  
-  → docs/hardware_selection/encoder_counter_system.md
+## Architecture Decision Records (ADR)
+
+- ADR-001: Encoder and Counter Selection  
+  → docs/decisions/ADR_001_encoder_counter.md
 
