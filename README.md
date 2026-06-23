@@ -10,6 +10,59 @@ This is a lightweight Digital Twin system for SMD Reel Packing Machine:
 - State machine
 - 3D visualization
 - Local simulation
+## System Overview
+
+The system integrates mechanical, electrical, and control components to achieve precise tape positioning for SMD reel packing.
+[Stepper Motor]
+       ↓
+[Incremental Encoder]
+       ↓
+[RS PRO Counter]
+       ↓
+[Control Logic]
+       ↓
+[Pin Mechanism (Final Alignment)]
+**Key Principle:**
+Final positioning accuracy is ensured by the mechanical pin, not by the encoder alone.
+
+## Hardware Strategy
+
+This system uses a hybrid approach:
+
+- Encoder: provides movement tracking
+- Counter: provides reliable pulse counting (prototype phase)
+- Pin mechanism: provides final positioning accuracy
+
+### Counter Selection
+
+The prototype uses an industrial counter:
+
+- RS PRO Counter (20 kHz, A+B support)
+
+Reason:
+- Reduces firmware risk
+- Improves debugging
+- Supports quadrature encoder
+
+### Future Plan
+
+The system will migrate to:
+
+- STM32F401 (Timer-based encoder decoding)
+
+after mechanical and system behavior are validated.
+
+
+## Operation Flow
+
+1. Motor feeds the tape forward
+2. Encoder generates pulses
+3. Counter tracks position
+4. Control enters slow zone near target
+5. Mechanical pin engages sprocket hole
+6. Position is locked accurately
+7. Counter resets for next cycle
+
 
 
 ## START
