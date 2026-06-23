@@ -16,6 +16,19 @@ This is a lightweight Digital Twin system for SMD Reel Packing Machine:
 > This project is for learning and demonstration purposes only.
 > No proprietary or confidential company information is included.
 
+
+## Contribution Guidelines
+
+Contributors must follow these rules:
+
+- Do NOT include any company or customer data
+- Do NOT copy code from internal projects
+- Only contribute original or open-source-safe content
+- This repository is for concept and educational purposes only
+
+All contributions will be reviewed before acceptance.
+
+
 ## System Overview
 
 The system integrates mechanical, electrical, and control components to achieve precise tape positioning for SMD reel packing.
