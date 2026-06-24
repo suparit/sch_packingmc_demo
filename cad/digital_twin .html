@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SMD Reel Packing — Digital Twin</title>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0c0f;
+      --surface: #111318;
+      --surface2: #1a1d24;
+      --border: #2a2d38;
+      --text: #e8eaf0;
+      --text-muted: #6b7080;
+      --teal: #00c9a7;
+      --teal-dim: rgba(0,201,167,0.12);
+      --purple: #a78bfa;
+      --purple-dim: rgba(167,139,250,0.12);
+      --red: #f87171;
+      --red-dim: rgba(248,113,113,0.12);
+      --amber: #fbbf24;
+      --amber-dim: rgba(251,191,36,0.1);
+      --gray: #4b5563;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      grid-template-rows: 52px 1fr;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    header {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 0 20px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--teal);
+    }
+    .sep { color: var(--border); }
+    .header-title { font-size: 13px; color: var(--text-muted); }
+    .status-pill {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--gray);
+      transition: background 0.3s;
+    }
+    .dot.running { background: var(--teal); box-shadow: 0 0 6px var(--teal); }
+    .dot.alarm   { background: var(--red);  box-shadow: 0 0 6px var(--red);  }
+
+    /* ── 3D Viewer ── */
+    .viewer-wrap {
+      position: relative;
+      background: #06080a;
+      overflow: hidden;
+    }
+    model-viewer {
+      width: 100%;
+      height: 100%;
+      --progress-bar-color: var(--teal);
+    }
+    .state-overlay {
+      position: absolute;
+      top: 16px; left: 16px;
+      background: rgba(10,12,15,0.82);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      min-width: 160px;
+    }
+    .state-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+    .state-name  { font-size: 22px; font-weight: 700; color: var(--teal); transition: color 0.3s; line-height: 1.1; }
+    .state-name.alarm { color: var(--red); }
+    .state-desc  { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+    /* ── Right Panel ── */
+    .panel {
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Controls */
+    .controls {
+      padding: 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .controls-row { display: flex; gap: 8px; }
+    .btn {
+      flex: 1;
+      padding: 9px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--surface2);
+      color: var(--text-muted);
+      transition: all 0.2s;
+      letter-spacing: 0.04em;
+    }
+    .btn:hover { border-color: var(--teal); color: var(--text); }
+    .btn.primary { background: var(--teal-dim); color: var(--teal); border-color: var(--teal); }
+    .btn.primary:hover { background: rgba(0,201,167,0.22); }
+    .btn.danger  { background: var(--red-dim);  color: var(--red);  border-color: var(--red); }
+    .btn.danger:hover  { background: rgba(248,113,113,0.22); }
+    .btn:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+
+    .decision-row {
+      display: none;
+      gap: 8px;
+    }
+    .decision-row.visible { display: flex; }
+    .decision-label { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; }
+
+    /* Speed control */
+    .speed-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .speed-label { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
+    input[type=range] {
+      flex: 1;
+      accent-color: var(--teal);
+      height: 3px;
+    }
+    .speed-val { font-size: 11px; color: var(--teal); min-width: 24px; text-align: right; }
+
+    /* FSM State list */
+    .fsm-section { padding: 12px 16px 6px; }
+    .section-title { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
+
+    .states-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 10px 8px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    .state-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 8px;
+      border-radius: 7px;
+      margin-bottom: 2px;
+      transition: background 0.2s;
+      cursor: default;
+    }
+    .state-item.active  { background: var(--teal-dim); }
+    .state-item.visited { background: rgba(255,255,255,0.03); }
+    .state-item.alarm-state { background: var(--red-dim); }
+
+    .state-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--gray);
+      flex-shrink: 0;
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .state-item.active .state-dot { background: var(--teal); box-shadow: 0 0 6px var(--teal); }
+    .state-item.visited .state-dot { background: var(--purple); }
+    .state-item.alarm-state .state-dot { background: var(--red); box-shadow: 0 0 6px var(--red); }
+
+    .state-info { flex: 1; min-width: 0; }
+    .s-name { font-size: 12px; font-weight: 600; color: var(--text-muted); transition: color 0.2s; }
+    .state-item.active  .s-name { color: var(--teal); }
+    .state-item.visited .s-name { color: var(--text); }
+    .state-item.alarm-state .s-name { color: var(--red); }
+    .s-action { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
+
+    .state-badge {
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: var(--surface2);
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Log */
+    .log-section {
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      height: 160px;
+      flex-shrink: 0;
+    }
+    .log-header {
+      padding: 8px 16px 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .log-clear { font-size: 10px; color: var(--text-muted); cursor: pointer; }
+    .log-clear:hover { color: var(--text); }
+    .log-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 0 16px 8px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 10px;
+      line-height: 1.7;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+    .log-entry { color: var(--text-muted); }
+    .log-entry .ts { color: var(--gray); margin-right: 6px; }
+    .log-entry.info .ev { color: var(--teal); }
+    .log-entry.warn .ev { color: var(--amber); }
+    .log-entry.err  .ev { color: var(--red); }
+
+    /* Counter */
+    .counter-bar {
+      padding: 8px 16px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 16px;
+    }
+    .counter-item { text-align: center; flex: 1; }
+    .counter-val { font-size: 20px; font-weight: 700; color: var(--teal); }
+    .counter-lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-top: 1px; }
+  </style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <span class="logo">SCH PackMC</span>
+  <span class="sep">|</span>
+  <span class="header-title">SMD Reel Packing — Digital Twin</span>
+  <div class="status-pill">
+    <div class="dot" id="headerDot"></div>
+    <span id="headerStatus">Idle</span>
+  </div>
+</header>
+
+<!-- 3D Viewer -->
+<div class="viewer-wrap">
+  <model-viewer
+    id="mv"
+    src="./export/machine.glb"
+    auto-rotate
+    camera-controls
+    shadow-intensity="1"
+    environment-image="neutral">
+  </model-viewer>
+  <div class="state-overlay">
+    <div class="state-label">Current State</div>
+    <div class="state-name" id="overlayState">READY</div>
+    <div class="state-desc" id="overlayDesc">Waiting for Start</div>
+  </div>
+</div>
+
+<!-- Right Panel -->
+<div class="panel">
+
+  <!-- Controls -->
+  <div class="controls">
+    <div class="controls-row">
+      <button class="btn primary" id="btnStart" onclick="fsm.start()">▶ Start</button>
+      <button class="btn" id="btnPause" onclick="fsm.pause()" disabled>⏸ Pause</button>
+      <button class="btn danger" id="btnReset" onclick="fsm.reset()" disabled>↺ Reset</button>
+    </div>
+
+    <div class="decision-row" id="decisionRow">
+      <span class="decision-label">Result:</span>
+      <button class="btn primary" onclick="fsm.decide('OK')" style="flex:none;padding:6px 14px">✓ OK</button>
+      <button class="btn danger"  onclick="fsm.decide('NG')" style="flex:none;padding:6px 14px">✗ NG / NO</button>
+    </div>
+
+    <div class="speed-row">
+      <span class="speed-label">Speed</span>
+      <input type="range" id="speedSlider" min="1" max="5" value="2" oninput="updateSpeed(this.value)">
+      <span class="speed-val" id="speedVal">2×</span>
+    </div>
+  </div>
+
+  <!-- Counters -->
+  <div class="counter-bar">
+    <div class="counter-item">
+      <div class="counter-val" id="cntPacked">0</div>
+      <div class="counter-lbl">Packed</div>
+    </div>
+    <div class="counter-item">
+      <div class="counter-val" id="cntCycles">0</div>
+      <div class="counter-lbl">Cycles</div>
+    </div>
+    <div class="counter-item">
+      <div class="counter-val" id="cntAlarm" style="color:var(--red)">0</div>
+      <div class="counter-lbl">Alarms</div>
+    </div>
+  </div>
+
+  <!-- State list -->
+  <div class="fsm-section">
+    <div class="section-title">FSM States</div>
+  </div>
+  <div class="states-list" id="statesList"></div>
+
+  <!-- Log -->
+  <div class="log-section">
+    <div class="log-header">
+      <span class="section-title" style="margin:0">Event Log</span>
+      <span class="log-clear" onclick="clearLog()">Clear</span>
+    </div>
+    <div class="log-body" id="logBody"></div>
+  </div>
+
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// FSM Definition
+// ─────────────────────────────────────────────
+const STATES = [
+  { id:'INIT',        action:'Initialize',        type:'action',   badge:'start' },
+  { id:'READY',       action:'Waiting for Start signal', type:'action',   badge:'' },
+  { id:'INDEX',       action:'Feed Carrier Tape',        type:'action',   badge:'' },
+  { id:'CHECK_INDEX', action:'Check Position?',          type:'decision', badge:'check' },
+  { id:'LOAD_PART',   action:'Place Component',          type:'action',   badge:'' },
+  { id:'VISION',      action:'Inspect Part?',            type:'decision', badge:'check' },
+  { id:'FEED_COVER',  action:'Feed Cover Tape',          type:'action',   badge:'' },
+  { id:'CHECK_TEMP',  action:'Temperature Ready?',       type:'decision', badge:'check' },
+  { id:'SEAL',        action:'Heat + Pressure',          type:'action',   badge:'' },
+  { id:'SEAL_CHECK',  action:'Seal OK?',                 type:'decision', badge:'check' },
+  { id:'ROLL',        action:'Wind Reel',                type:'action',   badge:'' },
+  { id:'COUNT_CHECK', action:'Count Done?',              type:'decision', badge:'check' },
+  { id:'STOP',        action:'Done → Return to READY',   type:'action',   badge:'end' },
+  { id:'ALARM',       action:'Stop Machine',      type:'action',   badge:'alarm' },
+];
+
+// Transition table — auto states step by themselves, decision states wait for user
+const TRANSITIONS = {
+  INIT:        { auto: 'READY' },
+  READY:       { auto: 'INDEX' },           // auto after delay (simulates Start)
+  INDEX:       { auto: 'CHECK_INDEX' },
+  CHECK_INDEX: { OK: 'LOAD_PART', NG: 'ALARM' },
+  LOAD_PART:   { auto: 'VISION' },
+  VISION:      { OK: 'FEED_COVER', NG: 'ALARM' },
+  FEED_COVER:  { auto: 'CHECK_TEMP' },
+  CHECK_TEMP:  { OK: 'SEAL', NG: 'CHECK_TEMP' },  // NG = wait (self-loop)
+  SEAL:        { auto: 'SEAL_CHECK' },
+  SEAL_CHECK:  { OK: 'ROLL', NG: 'ALARM' },
+  ROLL:        { auto: 'COUNT_CHECK' },
+  COUNT_CHECK: { OK: 'STOP', NG: 'INDEX' },        // NG = not done yet → loop
+  STOP:        { auto: 'READY' },
+  ALARM:       { auto: 'INIT' },
+};
+
+let speedMultiplier = 2;
+const baseDelay = () => (1200 / speedMultiplier);
+
+// ─────────────────────────────────────────────
+// Build state list UI
+// ─────────────────────────────────────────────
+const statesList = document.getElementById('statesList');
+STATES.forEach(s => {
+  const el = document.createElement('div');
+  el.className = 'state-item';
+  el.id = 'si_' + s.id;
+  el.innerHTML = `
+    <div class="state-dot"></div>
+    <div class="state-info">
+      <div class="s-name">${s.id}</div>
+      <div class="s-action">${s.action}</div>
+    </div>
+    ${s.badge ? `<span class="state-badge">${s.badge}</span>` : ''}
+  `;
+  statesList.appendChild(el);
+});
+
+// ─────────────────────────────────────────────
+// Log
+// ─────────────────────────────────────────────
+function log(msg, type='info') {
+  const body = document.getElementById('logBody');
+  const now = new Date();
+  const ts = now.toTimeString().slice(0,8);
+  const el = document.createElement('div');
+  el.className = `log-entry ${type}`;
+  el.innerHTML = `<span class="ts">${ts}</span><span class="ev">${msg}</span>`;
+  body.appendChild(el);
+  body.scrollTop = body.scrollHeight;
+}
+function clearLog() { document.getElementById('logBody').innerHTML = ''; }
+
+// ─────────────────────────────────────────────
+// FSM Engine
+// ─────────────────────────────────────────────
+const fsm = (() => {
+  let current = 'READY';
+  let running = false;
+  let paused  = false;
+  let timer   = null;
+  let packed  = 0;
+  let cycles  = 0;
+  let alarms  = 0;
+  const visited = new Set();
+
+  function setState(id) {
+    // clear old active
+    document.querySelectorAll('.state-item.active').forEach(el => {
+      el.classList.remove('active');
+      el.classList.add('visited');
+    });
+
+    // set new
+    current = id;
+    visited.add(id);
+    const el = document.getElementById('si_' + id);
+    if (el) {
+      el.classList.remove('visited');
+      el.classList.add(id === 'ALARM' ? 'alarm-state' : 'active');
+      el.scrollIntoView({ block:'nearest', behavior:'smooth' });
+    }
+
+    // overlay
+    const state = STATES.find(s => s.id === id);
+    document.getElementById('overlayState').textContent = id;
+    document.getElementById('overlayState').className = 'state-name' + (id==='ALARM' ? ' alarm' : '');
+    document.getElementById('overlayDesc').textContent = state ? state.action : '';
+
+    // header dot
+    const dot = document.getElementById('headerDot');
+    const hs  = document.getElementById('headerStatus');
+    if (!running)         { dot.className='dot'; hs.textContent='Idle'; }
+    else if (id==='ALARM'){ dot.className='dot alarm'; hs.textContent='ALARM'; }
+    else                  { dot.className='dot running'; hs.textContent='Running'; }
+
+    log(`→ ${id}${state ? ' : '+state.action : ''}`, id==='ALARM'?'err':'info');
+
+    // counters
+    if (id === 'ROLL') { packed++; document.getElementById('cntPacked').textContent = packed; }
+    if (id === 'STOP') { cycles++; document.getElementById('cntCycles').textContent = cycles; }
+    if (id === 'ALARM'){ alarms++; document.getElementById('cntAlarm').textContent  = alarms; }
+
+    // show decision UI?
+    const tr = TRANSITIONS[id];
+    const isDecision = tr && !tr.auto;
+    document.getElementById('decisionRow').className = 'decision-row' + (isDecision && running ? ' visible' : '');
+
+    // auto-advance?
+    if (running && !paused && tr && tr.auto) {
+      const delay = id === 'READY' ? baseDelay() * 1.5 : baseDelay();
+      timer = setTimeout(() => advance('auto'), delay);
+    }
+  }
+
+  function advance(signal) {
+    if (!running || paused) return;
+    clearTimeout(timer);
+    const tr = TRANSITIONS[current];
+    if (!tr) return;
+    const next = tr[signal] || tr.auto;
+    if (next) setState(next);
+  }
+
+  return {
+    start() {
+      if (running) return;
+      running = true; paused = false;
+      document.getElementById('btnStart').disabled = true;
+      document.getElementById('btnPause').disabled = false;
+      document.getElementById('btnReset').disabled = false;
+      log('▶ Machine started', 'info');
+      setState('INIT');
+    },
+    pause() {
+      if (!running) return;
+      paused = !paused;
+      clearTimeout(timer);
+      const btn = document.getElementById('btnPause');
+      btn.textContent = paused ? '▶ Resume' : '⏸ Pause';
+      document.getElementById('headerDot').className = paused ? 'dot' : 'dot running';
+      document.getElementById('headerStatus').textContent = paused ? 'Paused' : 'Running';
+      log(paused ? '⏸ Paused' : '▶ Resumed', 'warn');
+      if (!paused) {
+        // re-check auto
+        const tr = TRANSITIONS[current];
+        if (tr && tr.auto) {
+          timer = setTimeout(() => advance('auto'), baseDelay());
+        }
+      }
+    },
+    reset() {
+      clearTimeout(timer);
+      running = false; paused = false;
+      document.getElementById('btnStart').disabled = false;
+      document.getElementById('btnPause').disabled = true;
+      document.getElementById('btnPause').textContent = '⏸ Pause';
+      document.getElementById('btnReset').disabled = true;
+      document.getElementById('decisionRow').className = 'decision-row';
+      document.getElementById('headerDot').className = 'dot';
+      document.getElementById('headerStatus').textContent = 'Idle';
+      document.querySelectorAll('.state-item').forEach(el => {
+        el.classList.remove('active','visited','alarm-state');
+      });
+      document.getElementById('overlayState').textContent = 'READY';
+      document.getElementById('overlayState').className = 'state-name';
+      document.getElementById('overlayDesc').textContent = 'Waiting for Start';
+      current = 'READY';
+      log('↺ Reset', 'warn');
+    },
+    decide(signal) {
+      if (!running || paused) return;
+      log(`  ↳ Decision: ${signal}`, signal==='OK'?'info':'err');
+      document.getElementById('decisionRow').className = 'decision-row';
+      advance(signal);
+    }
+  };
+})();
+
+function updateSpeed(v) {
+  speedMultiplier = Number(v);
+  document.getElementById('speedVal').textContent = v + '×';
+}
+</script>
+</body>
+</html>
