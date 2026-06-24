@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -281,7 +281,7 @@
   <div class="state-overlay">
     <div class="state-label">Current State</div>
     <div class="state-name" id="overlayState">READY</div>
-    <div class="state-desc" id="overlayDesc">รอ Start</div>
+    <div class="state-desc" id="overlayDesc">Waiting for Start</div>
   </div>
 </div>
 
@@ -297,7 +297,7 @@
     </div>
 
     <div class="decision-row" id="decisionRow">
-      <span class="decision-label">ผลตรวจ:</span>
+      <span class="decision-label">Result:</span>
       <button class="btn primary" onclick="fsm.decide('OK')" style="flex:none;padding:6px 14px">✓ OK</button>
       <button class="btn danger"  onclick="fsm.decide('NG')" style="flex:none;padding:6px 14px">✗ NG / NO</button>
     </div>
@@ -348,18 +348,18 @@
 // ─────────────────────────────────────────────
 const STATES = [
   { id:'INIT',        action:'Initialize',        type:'action',   badge:'start' },
-  { id:'READY',       action:'รอ Start signal',   type:'action',   badge:'' },
-  { id:'INDEX',       action:'Feed Carrier Tape', type:'action',   badge:'' },
-  { id:'CHECK_INDEX', action:'ตรวจ Position?',    type:'decision', badge:'check' },
-  { id:'LOAD_PART',   action:'วาง Component',     type:'action',   badge:'' },
-  { id:'VISION',      action:'ตรวจ Part?',        type:'decision', badge:'check' },
-  { id:'FEED_COVER',  action:'Feed Cover Tape',   type:'action',   badge:'' },
-  { id:'CHECK_TEMP',  action:'Temperature OK?',   type:'decision', badge:'check' },
-  { id:'SEAL',        action:'Heat + Pressure',   type:'action',   badge:'' },
-  { id:'SEAL_CHECK',  action:'Seal OK?',          type:'decision', badge:'check' },
-  { id:'ROLL',        action:'Wind Reel',         type:'action',   badge:'' },
-  { id:'COUNT_CHECK', action:'Count done?',       type:'decision', badge:'check' },
-  { id:'STOP',        action:'จบ → กลับ READY',  type:'action',   badge:'end' },
+  { id:'READY',       action:'Waiting for Start signal', type:'action',   badge:'' },
+  { id:'INDEX',       action:'Feed Carrier Tape',        type:'action',   badge:'' },
+  { id:'CHECK_INDEX', action:'Check Position?',          type:'decision', badge:'check' },
+  { id:'LOAD_PART',   action:'Place Component',          type:'action',   badge:'' },
+  { id:'VISION',      action:'Inspect Part?',            type:'decision', badge:'check' },
+  { id:'FEED_COVER',  action:'Feed Cover Tape',          type:'action',   badge:'' },
+  { id:'CHECK_TEMP',  action:'Temperature Ready?',       type:'decision', badge:'check' },
+  { id:'SEAL',        action:'Heat + Pressure',          type:'action',   badge:'' },
+  { id:'SEAL_CHECK',  action:'Seal OK?',                 type:'decision', badge:'check' },
+  { id:'ROLL',        action:'Wind Reel',                type:'action',   badge:'' },
+  { id:'COUNT_CHECK', action:'Count Done?',              type:'decision', badge:'check' },
+  { id:'STOP',        action:'Done → Return to READY',   type:'action',   badge:'end' },
   { id:'ALARM',       action:'Stop Machine',      type:'action',   badge:'alarm' },
 ];
 
@@ -531,7 +531,7 @@ const fsm = (() => {
       });
       document.getElementById('overlayState').textContent = 'READY';
       document.getElementById('overlayState').className = 'state-name';
-      document.getElementById('overlayDesc').textContent = 'รอ Start';
+      document.getElementById('overlayDesc').textContent = 'Waiting for Start';
       current = 'READY';
       log('↺ Reset', 'warn');
     },
