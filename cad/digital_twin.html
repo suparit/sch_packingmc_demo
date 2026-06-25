@@ -289,26 +289,23 @@ function renderStepUI(){
   sl.innerHTML='';
   STEPS.forEach((s,i)=>{
     const card = document.createElement('div');
-    card.className='step-card' + (i===currentStep?' active':i<currentStep?' done':'');
+    const isCurrent = (i===currentStep);
+    card.className='step-card' + (isCurrent?' active':i<currentStep?' done':'');
     card.id='sc_'+i;
-
-    const isBtnReady = (i===currentStep);
-    const isReset    = (s.id==='RESET');
     card.innerHTML=`
       <div class="step-num">${i+1}</div>
       <div class="step-info">
         <div class="step-name">${s.name}</div>
         <div class="step-desc">${s.desc}</div>
       </div>
-      <button class="step-btn${isBtnReady?' ready':''}"
+      <button class="step-btn${isCurrent?' ready':''}"
         id="sb_${i}"
-        ${isBtnReady?'':'disabled'}
+        ${isCurrent?'':'disabled'}
         onclick="doStep(${i})"
       >${s.btn}</button>
     `;
     sl.appendChild(card);
   });
-  // scroll active into view
   const active=document.getElementById('sc_'+currentStep);
   if(active) active.scrollIntoView({block:'nearest',behavior:'smooth'});
 }
@@ -498,33 +495,6 @@ function runAnim(id, onDone){
     default:
       done();
   }
-}
-
-// ── Init UI (before GLB loads, buttons disabled) ──
-function renderStepUI(){
-  const sl = document.getElementById('stepsList');
-  sl.innerHTML='';
-  STEPS.forEach((s,i)=>{
-    const card = document.createElement('div');
-    const isCurrent = (i===currentStep);
-    card.className='step-card' + (isCurrent?' active':i<currentStep?' done':'');
-    card.id='sc_'+i;
-    card.innerHTML=`
-      <div class="step-num">${i+1}</div>
-      <div class="step-info">
-        <div class="step-name">${s.name}</div>
-        <div class="step-desc">${s.desc}</div>
-      </div>
-      <button class="step-btn${isCurrent?' ready':''}"
-        id="sb_${i}"
-        ${isCurrent?'':'disabled'}
-        onclick="doStep(${i})"
-      >${s.btn}</button>
-    `;
-    sl.appendChild(card);
-  });
-  const active=document.getElementById('sc_'+currentStep);
-  if(active) active.scrollIntoView({block:'nearest',behavior:'smooth'});
 }
 
 renderStepUI(); // initial render (before GLB)
