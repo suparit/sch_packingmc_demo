@@ -273,6 +273,34 @@ const moveMat = new THREE.MeshStandardMaterial({color:0xa78bfa,emissive:0x110033
 function hl(role,mat){const m=meshMap[role];if(m){m.material=mat;}}
 function restoreAll(){Object.keys(meshMap).forEach(r=>{const m=meshMap[r];if(m&&origMat[r])m.material=Array.isArray(origMat[r])?origMat[r].map(x=>x.clone()):origMat[r].clone();});}
 
+// ── flash: สลับ mat ↔ origMat n ครั้ง ──
+function flash(role, mat, times=3, intervalMs=140){
+  let count=0;
+  const tick=()=>{
+    if(!meshMap[role]) return;
+    hl(role, count%2===0 ? mat : null); // null = restore จะทำด้านนอก
+    if(count%2===0) meshMap[role].material=mat;
+    else if(origMat[role]) meshMap[role].material=Array.isArray(origMat[role])?origMat[role].map(x=>x.clone()):origMat[role].clone();
+    count++;
+    if(count < times*2) setTimeout(tick, intervalMs);
+  };
+  tick();
+}
+
+// ── pulse: ขยับ role +delta แล้วกลับ n ครั้ง ──
+function pulse(role, delta, durSec, times=2, onAllDone=null){
+  let count=0;
+  const step=()=>{
+    if(count>=times){if(onAllDone)onAllDone();return;}
+    tw(role, delta, durSec, ()=>{
+      ret(role, durSec*0.8);
+      count++;
+      setTimeout(step, durSec*1800);
+    });
+  };
+  step();
+}
+
 // ── BK05 Animation per state ──
 function playAnim(id){
   restoreAll();
@@ -280,18 +308,32 @@ function playAnim(id){
 
   switch(id){
 
-    // ── 5: SEAL — seal_head + cylinder1 กดลง -Y ──
-    // กดเร็ว (0.15s) → hold 0.5s → ยกขึ้นเร็ว (0.15s)
+    // ── INIT — boot sequence: flash ทุก part ทีละชิ้นเป็นลำดับ ──
+    case 'INIT':{
+      const parts = ['roller_collect','roller_feed','carrier_tape','cylinder2',
+                     'seal_head','cylinder1','seal_heater','seal_holder','spring'];
+      parts.forEach((role,i)=>{
+        setTimeout(()=>{
+          if(!meshMap[role]) return;
+          hl(role, hlMat);
+          setTimeout(()=>{
+            if(meshMap[role]&&origMat[role])
+              meshMap[role].material=Array.isArray(origMat[role])?origMat[role].map(x=>x.clone()):origMat[role].clone();
+          }, 200/S);
+        }, i*120/S);
+      });
+      break;
+    }
+
+    // ── SEAL — seal_head + cylinder1 กดลง hold แล้วยกขึ้น ──
     case 'SEAL':
       hl('seal_head',   warmMat);
       hl('cylinder1',   warmMat);
       hl('seal_heater', warmMat);
       hl('seal_holder', hlMat);
-      // กดลงพร้อมกัน
       tw('seal_head',   new THREE.Vector3(0,-0.13,0), 0.15/S);
       tw('cylinder1',   new THREE.Vector3(0,-0.10,0), 0.15/S);
       tw('seal_heater', new THREE.Vector3(0,-0.13,0), 0.15/S, ()=>{
-        // hold 500ms แล้วยกขึ้น
         setTimeout(()=>{
           ret('seal_head',   0.15/S);
           ret('cylinder1',   0.15/S);
@@ -300,17 +342,30 @@ function playAnim(id){
       });
       break;
 
-    // ── INDEX — cylinder2 ดันขึ้น → roller_feed หมุนรอบ X + carrier เลื่อน -X → cylinder2 ลง ──
+    // ── SEAL_CHECK — seal_head + seal_heater กระพริบ 3 ครั้ง (ตรวจสอบรอยประทับ) ──
+    case 'SEAL_CHECK':{
+      const checkMat = new THREE.MeshStandardMaterial({color:0xfbbf24,emissive:0x221100,roughness:0.25});
+      let count=0;
+      const blink=()=>{
+        if(count>=6) return;
+        const on=count%2===0;
+        hl('seal_head',   on?checkMat:hlMat);
+        hl('seal_heater', on?checkMat:hlMat);
+        count++;
+        setTimeout(blink, 100/S);
+      };
+      blink();
+      break;
+    }
+
+    // ── INDEX — cylinder2 ดันขึ้น → roller_feed หมุน + carrier เลื่อน → cylinder2 ลง ──
     case 'INDEX':
       hl('cylinder2',   moveMat);
       hl('roller_feed', hlMat);
       hl('carrier_tape',hlMat);
-      // step 1: cylinder2 ดันขึ้น +Y
       tw('cylinder2', new THREE.Vector3(0,0.08,0), 0.12/S, ()=>{
-        // step 2: roller หมุนรอบแกน X (เหมือนล้อรถ) + carrier เลื่อนตามร่อง -X
         twRot('roller_feed', Math.PI*2, 0.30/S, 'x');
         tw('carrier_tape', new THREE.Vector3(-0.10,0,0), 0.30/S, ()=>{
-          // step 3: carrier reset + cylinder2 ลง
           setTimeout(()=>{
             ret('carrier_tape', 0.15/S);
             ret('cylinder2',    0.15/S);
@@ -319,12 +374,27 @@ function playAnim(id){
       });
       break;
 
-    // ── ROLL — roller_collect หมุนรอบ X อยู่กับที่ (ล้อรถ) ──
-    case 'ROLL':
-      hl('roller_collect', hlMat);
-      twRot('roller_collect', Math.PI*2, 0.35/S, 'x');
+    // ── CHECK_INDEX — carrier_tape + cylinder2 กระพริบ amber (ตรวจตำแหน่ง) ──
+    case 'CHECK_INDEX':{
+      const posMat = new THREE.MeshStandardMaterial({color:0xfbbf24,emissive:0x332200,roughness:0.3});
+      let count=0;
+      const blink=()=>{
+        if(count>=4) return;
+        const on=count%2===0;
+        hl('carrier_tape', on?posMat:hlMat);
+        hl('cylinder2',    on?posMat:moveMat);
+        count++;
+        setTimeout(blink, 110/S);
+      };
+      blink();
+      // jitter เล็กน้อยบน carrier_tape เพื่อสื่อว่ากำลัง "ล็อก" ตำแหน่ง
+      tw('carrier_tape', new THREE.Vector3(0.005,0,0), 0.05/S, ()=>{
+        ret('carrier_tape', 0.05/S);
+      });
       break;
+    }
 
+    // ── LOAD_PART — cylinder2 กดลงวางชิ้นงาน ──
     case 'LOAD_PART':
       hl('cylinder2', moveMat);
       tw('cylinder2', new THREE.Vector3(0,-0.06,0), 0.18/S, ()=>{
@@ -332,24 +402,66 @@ function playAnim(id){
       });
       break;
 
-    case 'VISION':
-      hl('seal_holder', hlMat);
+    // ── VISION — seal_holder pulse เข้าออก (จำลอง camera focus) ──
+    case 'VISION':{
+      const camMat = new THREE.MeshStandardMaterial({color:0x60a5fa,emissive:0x001133,roughness:0.2});
+      hl('seal_holder', camMat);
+      // pulse เล็กน้อยในแกน Y
+      pulse('seal_holder', new THREE.Vector3(0,0.015,0), 0.12/S, 2);
       break;
+    }
 
+    // ── FEED_COVER — spring เลื่อนหน้า ──
     case 'FEED_COVER':
       hl('spring', moveMat);
       tw('spring', new THREE.Vector3(0,0,0.05), 0.18/S, ()=>ret('spring',0.15/S));
       break;
 
-    case 'CHECK_TEMP':
+    // ── CHECK_TEMP — seal_heater กระพริบ warm → teal บอกสถานะ "กำลังเช็ค" ──
+    case 'CHECK_TEMP':{
+      let on=true;
+      const blinkTemp=()=>{
+        hl('seal_heater', on?warmMat:hlMat); on=!on;
+      };
       hl('seal_heater', warmMat);
+      const iv=setInterval(blinkTemp, 200/S);
+      setTimeout(()=>clearInterval(iv), (DUR.CHECK_TEMP-50)/S);
+      break;
+    }
+
+    // ── ROLL — roller_collect หมุนรอบ X ──
+    case 'ROLL':
+      hl('roller_collect', hlMat);
+      twRot('roller_collect', Math.PI*2, 0.35/S, 'x');
       break;
 
+    // ── COUNT_CHECK — roller_collect หมุนสั้น + flash ทุก roller (นับรอบ) ──
+    case 'COUNT_CHECK':{
+      const cntMat = new THREE.MeshStandardMaterial({color:0xa78bfa,emissive:0x110022,roughness:0.3});
+      hl('roller_collect', cntMat);
+      hl('roller_feed',    cntMat);
+      twRot('roller_collect', Math.PI*0.5, 0.12/S, 'x', ()=>{
+        flash('roller_collect', hlMat, 2, 120/S);
+        flash('roller_feed',    hlMat, 2, 120/S);
+      });
+      break;
+    }
+
+    // ── STOP — carrier tape เลื่อนกลับ + restore ──
+    case 'STOP':
+      hl('carrier_tape', hlMat);
+      tw('carrier_tape', new THREE.Vector3(0.04,0,0), 0.15/S, ()=>{
+        ret('carrier_tape', 0.20/S);
+        setTimeout(()=>restoreAll(), 250/S);
+      });
+      break;
+
+    // ── ALARM — flash ทุก part สีแดง ──
     case 'ALARM':
       Object.keys(meshMap).forEach(r=>hl(r,alMat));
       break;
 
-    case 'STOP':
+    // ── READY — restore ทุก part ──
     case 'READY':
       restoreAll();
       break;
