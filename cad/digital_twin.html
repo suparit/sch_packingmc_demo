@@ -249,12 +249,12 @@ function tw(role,delta,durSec,onDone=null){
     to:mesh.position.clone().add(delta),dur:durSec,elapsed:0,onDone});
   document.getElementById('animTag').style.display='block';
 }
-function twRot(role,deltaRot,durSec,onDone=null){
+function twRot(role,deltaRot,durSec,axis='z',onDone=null){
   const mesh=meshMap[role]; if(!mesh) return;
   const key=role+'_r';
   const i=tweens.findIndex(t=>t.role===key); if(i>-1) tweens.splice(i,1);
-  tweens.push({role:key,mesh,fromRot:mesh.rotation.z,toRot:mesh.rotation.z+deltaRot,
-    isRot:true,dur:durSec,elapsed:0,onDone});
+  tweens.push({role:key,mesh,fromRot:mesh.rotation[axis],toRot:mesh.rotation[axis]+deltaRot,
+    isRot:true,rotAxis:axis,dur:durSec,elapsed:0,onDone});
 }
 function ret(role,durSec=0.18){
   const mesh=meshMap[role]; if(!mesh||!origPos[role]) return;
@@ -300,17 +300,16 @@ function playAnim(id){
       });
       break;
 
-    // ── INDEX — ลำดับ: cylinder2 ดันขึ้น → roller_feed หมุน + carrier เลื่อน → cylinder2 ลง ──
+    // ── INDEX — cylinder2 ดันขึ้น → roller_feed หมุนรอบ X + carrier เลื่อน -X → cylinder2 ลง ──
     case 'INDEX':
       hl('cylinder2',   moveMat);
       hl('roller_feed', hlMat);
       hl('carrier_tape',hlMat);
-
-      // step 1: cylinder2 ดันขึ้น +Y (0.12s)
+      // step 1: cylinder2 ดันขึ้น +Y
       tw('cylinder2', new THREE.Vector3(0,0.08,0), 0.12/S, ()=>{
-        // step 2: roller_feed หมุน + carrier tape เลื่อน (+Z) พร้อมกัน
-        twRot('roller_feed', -Math.PI*2, 0.30/S); // หมุน 1 รอบ
-        tw('carrier_tape', new THREE.Vector3(0,0,0.10), 0.30/S, ()=>{
+        // step 2: roller หมุนรอบแกน X (เหมือนล้อรถ) + carrier เลื่อนตามร่อง -X
+        twRot('roller_feed', Math.PI*2, 0.30/S, 'x');
+        tw('carrier_tape', new THREE.Vector3(-0.10,0,0), 0.30/S, ()=>{
           // step 3: carrier reset + cylinder2 ลง
           setTimeout(()=>{
             ret('carrier_tape', 0.15/S);
@@ -320,11 +319,10 @@ function playAnim(id){
       });
       break;
 
-    // ── ROLL — roller_collect หมุน 360° อยู่กับที่ (สุดท้ายสุด) ──
+    // ── ROLL — roller_collect หมุนรอบ X อยู่กับที่ (ล้อรถ) ──
     case 'ROLL':
       hl('roller_collect', hlMat);
-      // หมุน 1 รอบเต็ม (360°)
-      twRot('roller_collect', -Math.PI*2, 0.35/S);
+      twRot('roller_collect', Math.PI*2, 0.35/S, 'x');
       break;
 
     case 'LOAD_PART':
@@ -367,7 +365,7 @@ function animate(){
   for(let i=tweens.length-1;i>=0;i--){
     const t=tweens[i]; t.elapsed+=dt;
     const p=Math.min(t.elapsed/t.dur,1), ep=ease(p);
-    if(t.isRot) t.mesh.rotation.z=t.fromRot+(t.toRot-t.fromRot)*ep;
+    if(t.isRot) t.mesh.rotation[t.rotAxis||'z']=t.fromRot+(t.toRot-t.fromRot)*ep;
     else t.mesh.position.lerpVectors(t.from,t.to,ep);
     if(p>=1){if(t.onDone)t.onDone();tweens.splice(i,1);}
   }
