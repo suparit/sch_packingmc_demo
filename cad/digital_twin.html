@@ -2,552 +2,571 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>SMD Reel Packing — Digital Twin</title>
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <title>SMD Reel Packing — Digital Twin v2</title>
+  <script type="importmap">
+    {"imports":{
+      "three":"https://unpkg.com/three@0.158.0/build/three.module.js",
+      "three/addons/":"https://unpkg.com/three@0.158.0/examples/jsm/"
+    }}
+  </script>
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0c0f;--surface:#111318;--surface2:#1a1d24;--border:#2a2d38;
+      --text:#e8eaf0;--muted:#6b7080;--teal:#00c9a7;--red:#f87171;--amber:#fbbf24;--purple:#a78bfa;
+    }
+    body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+      display:grid;grid-template-columns:1fr 320px;grid-template-rows:48px 1fr;height:100vh;overflow:hidden}
+    header{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:0 16px;
+      background:var(--surface);border-bottom:1px solid var(--border)}
+    .logo{font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--teal)}
+    .htitle{font-size:12px;color:var(--muted)}
+    .hdot{width:8px;height:8px;border-radius:50%;background:#4b5563;margin-left:auto;transition:background .3s}
+    .hdot.run{background:var(--teal);box-shadow:0 0 6px var(--teal)}
+    .hdot.alarm{background:var(--red);box-shadow:0 0 6px var(--red)}
+    #hstatus{font-size:12px;color:var(--muted);margin-left:6px}
 
-    :root {
-      --bg: #0a0c0f;
-      --surface: #111318;
-      --surface2: #1a1d24;
-      --border: #2a2d38;
-      --text: #e8eaf0;
-      --text-muted: #6b7080;
-      --teal: #00c9a7;
-      --teal-dim: rgba(0,201,167,0.12);
-      --purple: #a78bfa;
-      --purple-dim: rgba(167,139,250,0.12);
-      --red: #f87171;
-      --red-dim: rgba(248,113,113,0.12);
-      --amber: #fbbf24;
-      --amber-dim: rgba(251,191,36,0.1);
-      --gray: #4b5563;
-    }
+    #canvas-wrap{position:relative;background:#06080a}
+    canvas{display:block;width:100%;height:100%}
+    .overlay{position:absolute;top:12px;left:12px;background:rgba(10,12,15,.88);
+      border:1px solid var(--border);border-radius:10px;padding:10px 14px;min-width:160px}
+    .ov-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+    .ov-state{font-size:22px;font-weight:700;color:var(--teal);line-height:1.1;transition:color .3s}
+    .ov-state.alarm{color:var(--red)}
+    .ov-desc{font-size:11px;color:var(--muted);margin-top:3px}
+    .anim-tag{position:absolute;bottom:12px;left:12px;background:rgba(251,191,36,.15);
+      border:1px solid var(--amber);border-radius:7px;padding:5px 12px;font-size:11px;
+      color:var(--amber);display:none}
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'SF Pro Display', 'Segoe UI', system-ui, sans-serif;
-      display: grid;
-      grid-template-columns: 1fr 340px;
-      grid-template-rows: 52px 1fr;
-      height: 100vh;
-      overflow: hidden;
-    }
+    .panel{background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+    .ctrl{padding:14px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+    .btn-row{display:flex;gap:6px}
+    .btn{flex:1;padding:8px;border:1px solid var(--border);border-radius:7px;font-size:11px;
+      font-weight:600;cursor:pointer;background:var(--surface2);color:var(--muted);
+      transition:all .2s;letter-spacing:.04em}
+    .btn:hover{border-color:var(--teal);color:var(--text)}
+    .btn.primary{background:rgba(0,201,167,.12);color:var(--teal);border-color:var(--teal)}
+    .btn.danger{background:rgba(248,113,113,.12);color:var(--red);border-color:var(--red)}
+    .btn:disabled{opacity:.35;cursor:not-allowed;pointer-events:none}
+    .speed-row{display:flex;align-items:center;gap:8px}
+    .slbl{font-size:11px;color:var(--muted);white-space:nowrap}
+    input[type=range]{flex:1;accent-color:var(--teal)}
+    .sval{font-size:11px;color:var(--teal);min-width:22px;text-align:right}
 
-    /* ── Header ── */
-    header {
-      grid-column: 1 / -1;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      padding: 0 20px;
-      background: var(--surface);
-      border-bottom: 1px solid var(--border);
-    }
-    .logo {
-      font-size: 13px;
-      font-weight: 600;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--teal);
-    }
-    .sep { color: var(--border); }
-    .header-title { font-size: 13px; color: var(--text-muted); }
-    .status-pill {
-      margin-left: auto;
-      display: flex;
-      align-items: center;
-      gap: 7px;
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-    .dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--gray);
-      transition: background 0.3s;
-    }
-    .dot.running { background: var(--teal); box-shadow: 0 0 6px var(--teal); }
-    .dot.alarm   { background: var(--red);  box-shadow: 0 0 6px var(--red);  }
+    .counters{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+    .cnt{flex:1;padding:10px;text-align:center;border-right:1px solid var(--border)}
+    .cnt:last-child{border-right:none}
+    .cnt-val{font-size:18px;font-weight:700;color:var(--teal)}
+    .cnt-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:1px}
 
-    /* ── 3D Viewer ── */
-    .viewer-wrap {
-      position: relative;
-      background: #06080a;
-      overflow: hidden;
-    }
-    model-viewer {
-      width: 100%;
-      height: 100%;
-      --progress-bar-color: var(--teal);
-    }
-    .state-overlay {
-      position: absolute;
-      top: 16px; left: 16px;
-      background: rgba(10,12,15,0.82);
-      backdrop-filter: blur(8px);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 12px 16px;
-      min-width: 160px;
-    }
-    .state-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
-    .state-name  { font-size: 22px; font-weight: 700; color: var(--teal); transition: color 0.3s; line-height: 1.1; }
-    .state-name.alarm { color: var(--red); }
-    .state-desc  { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+    .sec-title{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:10px 14px 4px}
+    .states{flex:1;overflow-y:auto;padding:0 8px 8px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+    .si{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;margin-bottom:2px;transition:background .2s}
+    .si.active{background:rgba(0,201,167,.1)}
+    .si.visited{background:rgba(255,255,255,.02)}
+    .si.alarm-s{background:rgba(248,113,113,.1)}
+    .si-dot{width:7px;height:7px;border-radius:50%;background:#2a2d38;flex-shrink:0;transition:background .3s}
+    .si.active .si-dot{background:var(--teal);box-shadow:0 0 5px var(--teal)}
+    .si.visited .si-dot{background:var(--purple)}
+    .si.alarm-s .si-dot{background:var(--red);box-shadow:0 0 5px var(--red)}
+    .si-name{font-size:11px;font-weight:600;color:var(--muted);transition:color .2s;min-width:90px}
+    .si.active .si-name{color:var(--teal)}
+    .si.visited .si-name{color:var(--text)}
+    .si.alarm-s .si-name{color:var(--red)}
+    .si-action{font-size:10px;color:var(--muted)}
 
-    /* ── Right Panel ── */
-    .panel {
-      background: var(--surface);
-      border-left: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-
-    /* Controls */
-    .controls {
-      padding: 16px;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-    .controls-row { display: flex; gap: 8px; }
-    .btn {
-      flex: 1;
-      padding: 9px 12px;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-size: 12px;
-      font-weight: 600;
-      cursor: pointer;
-      background: var(--surface2);
-      color: var(--text-muted);
-      transition: all 0.2s;
-      letter-spacing: 0.04em;
-    }
-    .btn:hover { border-color: var(--teal); color: var(--text); }
-    .btn.primary { background: var(--teal-dim); color: var(--teal); border-color: var(--teal); }
-    .btn.primary:hover { background: rgba(0,201,167,0.22); }
-    .btn.danger  { background: var(--red-dim);  color: var(--red);  border-color: var(--red); }
-    .btn.danger:hover  { background: rgba(248,113,113,0.22); }
-    .btn:disabled { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
-
-    .decision-row {
-      display: none;
-      gap: 8px;
-    }
-    .decision-row.visible { display: flex; }
-    .decision-label { font-size: 11px; color: var(--text-muted); display: flex; align-items: center; }
-
-    /* Speed control */
-    .speed-row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .speed-label { font-size: 11px; color: var(--text-muted); white-space: nowrap; }
-    input[type=range] {
-      flex: 1;
-      accent-color: var(--teal);
-      height: 3px;
-    }
-    .speed-val { font-size: 11px; color: var(--teal); min-width: 24px; text-align: right; }
-
-    /* FSM State list */
-    .fsm-section { padding: 12px 16px 6px; }
-    .section-title { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px; }
-
-    .states-list {
-      flex: 1;
-      overflow-y: auto;
-      padding: 0 10px 8px;
-      scrollbar-width: thin;
-      scrollbar-color: var(--border) transparent;
-    }
-    .state-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 7px 8px;
-      border-radius: 7px;
-      margin-bottom: 2px;
-      transition: background 0.2s;
-      cursor: default;
-    }
-    .state-item.active  { background: var(--teal-dim); }
-    .state-item.visited { background: rgba(255,255,255,0.03); }
-    .state-item.alarm-state { background: var(--red-dim); }
-
-    .state-dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      background: var(--gray);
-      flex-shrink: 0;
-      transition: background 0.3s, box-shadow 0.3s;
-    }
-    .state-item.active .state-dot { background: var(--teal); box-shadow: 0 0 6px var(--teal); }
-    .state-item.visited .state-dot { background: var(--purple); }
-    .state-item.alarm-state .state-dot { background: var(--red); box-shadow: 0 0 6px var(--red); }
-
-    .state-info { flex: 1; min-width: 0; }
-    .s-name { font-size: 12px; font-weight: 600; color: var(--text-muted); transition: color 0.2s; }
-    .state-item.active  .s-name { color: var(--teal); }
-    .state-item.visited .s-name { color: var(--text); }
-    .state-item.alarm-state .s-name { color: var(--red); }
-    .s-action { font-size: 10px; color: var(--text-muted); margin-top: 1px; }
-
-    .state-badge {
-      font-size: 9px;
-      padding: 2px 6px;
-      border-radius: 4px;
-      background: var(--surface2);
-      color: var(--text-muted);
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    /* Log */
-    .log-section {
-      border-top: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      height: 160px;
-      flex-shrink: 0;
-    }
-    .log-header {
-      padding: 8px 16px 6px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    .log-clear { font-size: 10px; color: var(--text-muted); cursor: pointer; }
-    .log-clear:hover { color: var(--text); }
-    .log-body {
-      flex: 1;
-      overflow-y: auto;
-      padding: 0 16px 8px;
-      font-family: 'SF Mono', 'Fira Code', monospace;
-      font-size: 10px;
-      line-height: 1.7;
-      scrollbar-width: thin;
-      scrollbar-color: var(--border) transparent;
-    }
-    .log-entry { color: var(--text-muted); }
-    .log-entry .ts { color: var(--gray); margin-right: 6px; }
-    .log-entry.info .ev { color: var(--teal); }
-    .log-entry.warn .ev { color: var(--amber); }
-    .log-entry.err  .ev { color: var(--red); }
-
-    /* Counter */
-    .counter-bar {
-      padding: 8px 16px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      gap: 16px;
-    }
-    .counter-item { text-align: center; flex: 1; }
-    .counter-val { font-size: 20px; font-weight: 700; color: var(--teal); }
-    .counter-lbl { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-top: 1px; }
+    .log-wrap{border-top:1px solid var(--border);height:140px;display:flex;flex-direction:column;flex-shrink:0}
+    .log-hdr{padding:6px 14px;display:flex;justify-content:space-between;align-items:center}
+    .log-clr{font-size:10px;color:var(--muted);cursor:pointer}.log-clr:hover{color:var(--text)}
+    .log-body{flex:1;overflow-y:auto;padding:0 14px 8px;font-family:monospace;font-size:10px;
+      line-height:1.7;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+    .le .ts{color:#4b5563;margin-right:5px}
+    .le.info .ev{color:var(--teal)}.le.warn .ev{color:var(--amber)}.le.err .ev{color:var(--red)}
   </style>
 </head>
 <body>
-
-<!-- Header -->
 <header>
-  <span class="logo">SCH PackMC</span>
-  <span class="sep">|</span>
-  <span class="header-title">SMD Reel Packing — Digital Twin</span>
-  <div class="status-pill">
-    <div class="dot" id="headerDot"></div>
-    <span id="headerStatus">Idle</span>
-  </div>
+  <span class="logo">BK05</span>
+  <span style="color:var(--border)">|</span>
+  <span class="htitle">SMD Reel Packing — Digital Twin v2</span>
+  <div class="hdot" id="hdot"></div>
+  <span id="hstatus">Idle</span>
 </header>
 
-<!-- 3D Viewer -->
-<div class="viewer-wrap">
-  <model-viewer
-    id="mv"
-    src="./export/machine.glb"
-    auto-rotate
-    camera-controls
-    shadow-intensity="1"
-    environment-image="neutral">
-  </model-viewer>
-  <div class="state-overlay">
-    <div class="state-label">Current State</div>
-    <div class="state-name" id="overlayState">READY</div>
-    <div class="state-desc" id="overlayDesc">Waiting for Start</div>
+<div id="canvas-wrap">
+  <canvas id="c"></canvas>
+  <div class="overlay">
+    <div class="ov-label">Current State</div>
+    <div class="ov-state" id="ovState">READY</div>
+    <div class="ov-desc" id="ovDesc">Waiting for Start</div>
   </div>
+  <div class="anim-tag" id="animTag">⟳ Animating</div>
 </div>
 
-<!-- Right Panel -->
 <div class="panel">
-
-  <!-- Controls -->
-  <div class="controls">
-    <div class="controls-row">
-      <button class="btn primary" id="btnStart" onclick="fsm.start()">▶ Start</button>
-      <button class="btn" id="btnPause" onclick="fsm.pause()" disabled>⏸ Pause</button>
-      <button class="btn danger" id="btnReset" onclick="fsm.reset()" disabled>↺ Reset</button>
+  <div class="ctrl">
+    <div class="btn-row">
+      <button class="btn primary" id="btnStart" onclick="fsmStart()">▶ Start</button>
+      <button class="btn" id="btnPause" onclick="fsmPause()" disabled>⏸ Pause</button>
+      <button class="btn danger" id="btnReset" onclick="fsmReset()" disabled>↺ Reset</button>
     </div>
-
-    <div class="decision-row" id="decisionRow">
-      <span class="decision-label">Result:</span>
-      <button class="btn primary" onclick="fsm.decide('OK')" style="flex:none;padding:6px 14px">✓ OK</button>
-      <button class="btn danger"  onclick="fsm.decide('NG')" style="flex:none;padding:6px 14px">✗ NG / NO</button>
-    </div>
-
     <div class="speed-row">
-      <span class="speed-label">Speed</span>
-      <input type="range" id="speedSlider" min="1" max="5" value="2" oninput="updateSpeed(this.value)">
-      <span class="speed-val" id="speedVal">2×</span>
+      <span class="slbl">Speed</span>
+      <input type="range" id="spd" min="0.5" max="3" step="0.5" value="1"
+        oninput="speedMul=+this.value;document.getElementById('sval').textContent=this.value+'×'">
+      <span class="sval" id="sval">1×</span>
     </div>
   </div>
 
-  <!-- Counters -->
-  <div class="counter-bar">
-    <div class="counter-item">
-      <div class="counter-val" id="cntPacked">0</div>
-      <div class="counter-lbl">Packed</div>
-    </div>
-    <div class="counter-item">
-      <div class="counter-val" id="cntCycles">0</div>
-      <div class="counter-lbl">Cycles</div>
-    </div>
-    <div class="counter-item">
-      <div class="counter-val" id="cntAlarm" style="color:var(--red)">0</div>
-      <div class="counter-lbl">Alarms</div>
-    </div>
+  <div class="counters">
+    <div class="cnt"><div class="cnt-val" id="cPacked">0</div><div class="cnt-lbl">Packed</div></div>
+    <div class="cnt"><div class="cnt-val" id="cCycles">0</div><div class="cnt-lbl">Cycles</div></div>
+    <div class="cnt"><div class="cnt-val" id="cAlarm" style="color:var(--red)">0</div><div class="cnt-lbl">Alarms</div></div>
   </div>
 
-  <!-- State list -->
-  <div class="fsm-section">
-    <div class="section-title">FSM States</div>
-  </div>
-  <div class="states-list" id="statesList"></div>
+  <div class="sec-title">FSM States</div>
+  <div class="states" id="statesList"></div>
 
-  <!-- Log -->
-  <div class="log-section">
-    <div class="log-header">
-      <span class="section-title" style="margin:0">Event Log</span>
-      <span class="log-clear" onclick="clearLog()">Clear</span>
+  <div class="log-wrap">
+    <div class="log-hdr">
+      <span class="sec-title" style="padding:0">Event Log</span>
+      <span class="log-clr" onclick="document.getElementById('logBody').innerHTML=''">Clear</span>
     </div>
     <div class="log-body" id="logBody"></div>
   </div>
-
 </div>
 
-<script>
-// ─────────────────────────────────────────────
-// FSM Definition
-// ─────────────────────────────────────────────
-const STATES = [
-  { id:'INIT',        action:'Initialize',        type:'action',   badge:'start' },
-  { id:'READY',       action:'Waiting for Start signal', type:'action',   badge:'' },
-  { id:'INDEX',       action:'Feed Carrier Tape',        type:'action',   badge:'' },
-  { id:'CHECK_INDEX', action:'Check Position?',          type:'decision', badge:'check' },
-  { id:'LOAD_PART',   action:'Place Component',          type:'action',   badge:'' },
-  { id:'VISION',      action:'Inspect Part?',            type:'decision', badge:'check' },
-  { id:'FEED_COVER',  action:'Feed Cover Tape',          type:'action',   badge:'' },
-  { id:'CHECK_TEMP',  action:'Temperature Ready?',       type:'decision', badge:'check' },
-  { id:'SEAL',        action:'Heat + Pressure',          type:'action',   badge:'' },
-  { id:'SEAL_CHECK',  action:'Seal OK?',                 type:'decision', badge:'check' },
-  { id:'ROLL',        action:'Wind Reel',                type:'action',   badge:'' },
-  { id:'COUNT_CHECK', action:'Count Done?',              type:'decision', badge:'check' },
-  { id:'STOP',        action:'Done → Return to READY',   type:'action',   badge:'end' },
-  { id:'ALARM',       action:'Stop Machine',      type:'action',   badge:'alarm' },
-];
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-// Transition table — auto states step by themselves, decision states wait for user
-const TRANSITIONS = {
-  INIT:        { auto: 'READY' },
-  READY:       { auto: 'INDEX' },           // auto after delay (simulates Start)
-  INDEX:       { auto: 'CHECK_INDEX' },
-  CHECK_INDEX: { OK: 'LOAD_PART', NG: 'ALARM' },
-  LOAD_PART:   { auto: 'VISION' },
-  VISION:      { OK: 'FEED_COVER', NG: 'ALARM' },
-  FEED_COVER:  { auto: 'CHECK_TEMP' },
-  CHECK_TEMP:  { OK: 'SEAL', NG: 'CHECK_TEMP' },  // NG = wait (self-loop)
-  SEAL:        { auto: 'SEAL_CHECK' },
-  SEAL_CHECK:  { OK: 'ROLL', NG: 'ALARM' },
-  ROLL:        { auto: 'COUNT_CHECK' },
-  COUNT_CHECK: { OK: 'STOP', NG: 'INDEX' },        // NG = not done yet → loop
-  STOP:        { auto: 'READY' },
-  ALARM:       { auto: 'INIT' },
+// ── Part map จาก glb_picker ──
+const PART_NAMES = {
+  seal_holder:    'Assembly_Daymo-2_8',
+  seal_head_heat: 'Assembly_Daymo-2_7',
+  carrier_tape:   'Assembly_Daymo-2_11',
+  seal_head:      'Assembly_Daymo-2_12',
+  cylinder:       'Assembly_Daymo-2_13',
+  roll:           'Assembly_Daymo-2_14',
+  spring:         'Assembly_Daymo-2_18',
+  roll_back:      'Assembly_Daymo-2_20',
+  cylinder2:      'Assembly_Daymo-2_23',
 };
 
-let speedMultiplier = 2;
-const baseDelay = () => (1200 / speedMultiplier);
+// ── FSM Definition ──
+const STATES = [
+  {id:'INIT',        action:'Initialize'},
+  {id:'READY',       action:'Waiting for Start'},
+  {id:'INDEX',       action:'Feed Carrier Tape'},
+  {id:'CHECK_INDEX', action:'Check Position'},
+  {id:'LOAD_PART',   action:'Place Component'},
+  {id:'VISION',      action:'Inspect Part'},
+  {id:'FEED_COVER',  action:'Feed Cover Tape'},
+  {id:'CHECK_TEMP',  action:'Temperature Ready?'},
+  {id:'SEAL',        action:'Heat + Pressure'},
+  {id:'SEAL_CHECK',  action:'Seal OK?'},
+  {id:'ROLL',        action:'Wind Reel'},
+  {id:'COUNT_CHECK', action:'Count Done?'},
+  {id:'STOP',        action:'Done → READY'},
+  {id:'ALARM',       action:'Stop Machine'},
+];
 
-// ─────────────────────────────────────────────
-// Build state list UI
-// ─────────────────────────────────────────────
-const statesList = document.getElementById('statesList');
+const TR = {
+  INIT:        {auto:'READY'},
+  READY:       {auto:'INDEX'},
+  INDEX:       {auto:'CHECK_INDEX'},
+  CHECK_INDEX: {OK:'LOAD_PART', NG:'ALARM'},
+  LOAD_PART:   {auto:'VISION'},
+  VISION:      {OK:'FEED_COVER', NG:'ALARM'},
+  FEED_COVER:  {auto:'CHECK_TEMP'},
+  CHECK_TEMP:  {OK:'SEAL', NG:'CHECK_TEMP'},
+  SEAL:        {auto:'SEAL_CHECK'},
+  SEAL_CHECK:  {OK:'ROLL', NG:'ALARM'},
+  ROLL:        {auto:'COUNT_CHECK'},
+  COUNT_CHECK: {OK:'STOP', NG:'INDEX'},
+  STOP:        {auto:'READY'},
+  ALARM:       {auto:'INIT'},
+};
+
+// Simulation probabilities (decision states)
+const PROB = {CHECK_INDEX:0.96, VISION:0.92, SEAL_CHECK:0.98, CHECK_TEMP:0.85, COUNT_CHECK:0.12};
+
+// BK05 timing: 1 cycle ≈ 1.5 sec total
+// State durations (ms) at speed 1x
+const DUR = {
+  INIT:300, READY:500,
+  INDEX:400,        // carrier tape feed
+  CHECK_INDEX:200,
+  LOAD_PART:300,
+  VISION:400,       // camera check
+  FEED_COVER:300,
+  CHECK_TEMP:200,
+  SEAL:500,         // heat + hold
+  SEAL_CHECK:200,
+  ROLL:300,         // reel wind
+  COUNT_CHECK:150,
+  STOP:400,
+  ALARM:800,
+};
+
+window.speedMul = 1;
+const dur = (id) => (DUR[id] || 400) / speedMul;
+
+// ── Three.js ──
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x06080a);
+
+const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 1000);
+camera.position.set(0, 1.5, 4);
+
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+const dl = new THREE.DirectionalLight(0xffffff, 1.2);
+dl.position.set(4,6,4); scene.add(dl);
+const dl2 = new THREE.DirectionalLight(0x6688ff, 0.35);
+dl2.position.set(-4,2,-4); scene.add(dl2);
+
+function resize(){
+  const p = canvas.parentElement;
+  renderer.setSize(p.clientWidth, p.clientHeight, false);
+  camera.aspect = p.clientWidth / p.clientHeight;
+  camera.updateProjectionMatrix();
+}
+resize();
+new ResizeObserver(resize).observe(canvas.parentElement);
+
+// ── Mesh registry ──
+const meshMap = {};       // role → THREE.Mesh
+const origPos = {};       // role → Vector3 (original)
+const origMat = {};       // role → original material
+
+function registerMesh(role, mesh) {
+  meshMap[role] = mesh;
+  origPos[role] = mesh.position.clone();
+  origMat[role] = Array.isArray(mesh.material)
+    ? mesh.material.map(m => m.clone())
+    : mesh.material.clone();
+}
+
+// ── Tween system ──
+const tweens = [];
+
+function tween(role, targetDelta, durationSec, onDone=null) {
+  const mesh = meshMap[role];
+  if (!mesh) return;
+  const i = tweens.findIndex(t => t.role === role);
+  if (i !== -1) tweens.splice(i, 1);
+  const from = mesh.position.clone();
+  const to   = mesh.position.clone().add(targetDelta);
+  tweens.push({role, mesh, from, to, dur: durationSec, elapsed: 0, onDone});
+  document.getElementById('animTag').style.display = 'block';
+}
+
+function tweenRot(role, targetDeltaRot, durationSec, onDone=null) {
+  const mesh = meshMap[role];
+  if (!mesh) return;
+  const key = role + '_rot';
+  const i = tweens.findIndex(t => t.role === key);
+  if (i !== -1) tweens.splice(i, 1);
+  const from = mesh.rotation.z;
+  const to   = from + targetDeltaRot;
+  tweens.push({role: key, mesh, fromRot: from, toRot: to, isRot: true,
+    dur: durationSec, elapsed: 0, onDone});
+  document.getElementById('animTag').style.display = 'block';
+}
+
+function returnTo(role, durationSec=0.25) {
+  const mesh = meshMap[role];
+  if (!mesh || !origPos[role]) return;
+  const i = tweens.findIndex(t => t.role === role);
+  if (i !== -1) tweens.splice(i, 1);
+  tweens.push({role, mesh, from: mesh.position.clone(), to: origPos[role].clone(),
+    dur: durationSec, elapsed: 0, onDone: null});
+}
+
+function ease(t){ return t<0.5 ? 2*t*t : -1+(4-2*t)*t; }
+
+// ── Highlight ──
+const hlMat   = new THREE.MeshStandardMaterial({color:0x00c9a7, emissive:0x003322, roughness:0.3});
+const alMat   = new THREE.MeshStandardMaterial({color:0xf87171, emissive:0x330000, roughness:0.3});
+const warmMat = new THREE.MeshStandardMaterial({color:0xfbbf24, emissive:0x331100, roughness:0.3});
+
+function hl(role, mat){ const m=meshMap[role]; if(m){ if(!origMat[role]) origMat[role]=m.material; m.material=mat; } }
+function restoreAll(){ Object.keys(meshMap).forEach(r=>{ const m=meshMap[r]; if(m&&origMat[r]) m.material=origMat[r]; }); }
+
+// ── BK05 Animation per state ──
+// carrier tape moves toward roll (assume +Z direction toward front reel)
+// seal head drops in -Y
+// reel rotates
+
+function playAnim(stateId) {
+  restoreAll();
+  switch(stateId) {
+
+    case 'INDEX':
+      // carrier tape เลื่อนไปหา roll ด้านหน้า (+Z)
+      hl('carrier_tape', hlMat);
+      hl('cylinder', hlMat);
+      // cylinder ยืด (ดัน tape)
+      tween('cylinder', new THREE.Vector3(0, 0, 0.06), 0.18, () => {
+        tween('carrier_tape', new THREE.Vector3(0, 0, 0.08), 0.20, () => {
+          setTimeout(() => {
+            returnTo('carrier_tape', 0.15);
+            returnTo('cylinder', 0.12);
+          }, 80);
+        });
+      });
+      break;
+
+    case 'LOAD_PART':
+      // cylinder2 กดลง (place component)
+      hl('cylinder2', hlMat);
+      tween('cylinder2', new THREE.Vector3(0, -0.07, 0), 0.20, () => {
+        setTimeout(() => returnTo('cylinder2', 0.15), 150);
+      });
+      break;
+
+    case 'VISION':
+      // highlight seal_holder (camera position)
+      hl('seal_holder', hlMat);
+      break;
+
+    case 'FEED_COVER':
+      hl('spring', hlMat);
+      tween('spring', new THREE.Vector3(0, 0, 0.05), 0.18, () => {
+        returnTo('spring', 0.15);
+      });
+      break;
+
+    case 'CHECK_TEMP':
+      // seal head heat glows warm
+      hl('seal_head_heat', warmMat);
+      break;
+
+    case 'SEAL':
+      // seal head กดลงแนวตั้ง (-Y) — BK05 vertical press
+      hl('seal_head', hlMat);
+      hl('seal_head_heat', warmMat);
+      hl('seal_holder', hlMat);
+      // กดลง → hold → ขึ้น
+      tween('seal_head', new THREE.Vector3(0, -0.14, 0), 0.22, () => {
+        tween('seal_head_heat', new THREE.Vector3(0, -0.14, 0), 0.22);
+        setTimeout(() => {
+          returnTo('seal_head', 0.20);
+          returnTo('seal_head_heat', 0.20);
+        }, 350); // hold time ≈ 350ms
+      });
+      break;
+
+    case 'ROLL':
+      // reel หมุน (+Z rotation) — roll เก็บ tape
+      hl('roll', hlMat);
+      hl('roll_back', hlMat);
+      tweenRot('roll',      -0.35, 0.30);
+      tweenRot('roll_back', -0.35, 0.30);
+      break;
+
+    case 'ALARM':
+      Object.keys(meshMap).forEach(r => hl(r, alMat));
+      break;
+
+    case 'STOP':
+    case 'READY':
+      restoreAll();
+      break;
+  }
+}
+
+// ── Render loop ──
+const clock = new THREE.Clock();
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = clock.getDelta();
+  controls.update();
+
+  for (let i = tweens.length - 1; i >= 0; i--) {
+    const t = tweens[i];
+    t.elapsed += dt;
+    const p = Math.min(t.elapsed / t.dur, 1);
+    const ep = ease(p);
+    if (t.isRot) {
+      t.mesh.rotation.z = t.fromRot + (t.toRot - t.fromRot) * ep;
+    } else {
+      t.mesh.position.lerpVectors(t.from, t.to, ep);
+    }
+    if (p >= 1) {
+      if (t.onDone) t.onDone();
+      tweens.splice(i, 1);
+    }
+  }
+  if (tweens.length === 0) document.getElementById('animTag').style.display = 'none';
+  renderer.render(scene, camera);
+}
+animate();
+
+// ── Load GLB ──
+new GLTFLoader().load('./export/machine.glb', gltf => {
+  scene.add(gltf.scene);
+
+  // center & fit camera
+  const box = new THREE.Box3().setFromObject(gltf.scene);
+  const center = box.getCenter(new THREE.Vector3());
+  const size   = box.getSize(new THREE.Vector3()).length();
+  gltf.scene.position.sub(center);
+  camera.position.set(0, size*0.3, size*1.15);
+  controls.target.set(0, 0, 0);
+  controls.update();
+
+  // register parts by name
+  gltf.scene.traverse(obj => {
+    if (!obj.isMesh) return;
+    const role = Object.keys(PART_NAMES).find(r => PART_NAMES[r] === obj.name);
+    if (role) registerMesh(role, obj);
+  });
+
+  const n = Object.keys(meshMap).length;
+  addLog(`GLB loaded — ${n}/${Object.keys(PART_NAMES).length} parts mapped`, 'info');
+}, null, err => addLog('GLB error: '+err.message, 'err'));
+
+// ── Build state list UI ──
+const sl = document.getElementById('statesList');
 STATES.forEach(s => {
   const el = document.createElement('div');
-  el.className = 'state-item';
-  el.id = 'si_' + s.id;
-  el.innerHTML = `
-    <div class="state-dot"></div>
-    <div class="state-info">
-      <div class="s-name">${s.id}</div>
-      <div class="s-action">${s.action}</div>
-    </div>
-    ${s.badge ? `<span class="state-badge">${s.badge}</span>` : ''}
-  `;
-  statesList.appendChild(el);
+  el.className = 'si'; el.id = 'si_'+s.id;
+  el.innerHTML = `<div class="si-dot"></div>
+    <span class="si-name">${s.id}</span>
+    <span class="si-action">${s.action}</span>`;
+  sl.appendChild(el);
 });
 
-// ─────────────────────────────────────────────
-// Log
-// ─────────────────────────────────────────────
-function log(msg, type='info') {
-  const body = document.getElementById('logBody');
-  const now = new Date();
-  const ts = now.toTimeString().slice(0,8);
+// ── Log ──
+function addLog(msg, type='info') {
+  const b = document.getElementById('logBody');
+  const ts = new Date().toTimeString().slice(0,8);
   const el = document.createElement('div');
-  el.className = `log-entry ${type}`;
+  el.className = 'le '+type;
   el.innerHTML = `<span class="ts">${ts}</span><span class="ev">${msg}</span>`;
-  body.appendChild(el);
-  body.scrollTop = body.scrollHeight;
+  b.appendChild(el);
+  b.scrollTop = b.scrollHeight;
 }
-function clearLog() { document.getElementById('logBody').innerHTML = ''; }
 
-// ─────────────────────────────────────────────
-// FSM Engine
-// ─────────────────────────────────────────────
-const fsm = (() => {
-  let current = 'READY';
-  let running = false;
-  let paused  = false;
-  let timer   = null;
-  let packed  = 0;
-  let cycles  = 0;
-  let alarms  = 0;
-  const visited = new Set();
+// ── FSM Engine ──
+let current='READY', running=false, paused=false, timer=null;
+let packed=0, cycles=0, alarms=0;
 
-  function setState(id) {
-    // clear old active
-    document.querySelectorAll('.state-item.active').forEach(el => {
-      el.classList.remove('active');
-      el.classList.add('visited');
-    });
+function setState(id) {
+  document.querySelectorAll('.si.active,.si.alarm-s').forEach(e=>{
+    e.classList.remove('active','alarm-s'); e.classList.add('visited');
+  });
+  current = id;
+  const el = document.getElementById('si_'+id);
+  if (el) { el.classList.remove('visited'); el.classList.add(id==='ALARM'?'alarm-s':'active'); el.scrollIntoView({block:'nearest',behavior:'smooth'}); }
 
-    // set new
-    current = id;
-    visited.add(id);
-    const el = document.getElementById('si_' + id);
-    if (el) {
-      el.classList.remove('visited');
-      el.classList.add(id === 'ALARM' ? 'alarm-state' : 'active');
-      el.scrollIntoView({ block:'nearest', behavior:'smooth' });
-    }
+  const s = STATES.find(x=>x.id===id);
+  document.getElementById('ovState').textContent = id;
+  document.getElementById('ovState').className = 'ov-state'+(id==='ALARM'?' alarm':'');
+  document.getElementById('ovDesc').textContent = s?.action||'';
 
-    // overlay
-    const state = STATES.find(s => s.id === id);
-    document.getElementById('overlayState').textContent = id;
-    document.getElementById('overlayState').className = 'state-name' + (id==='ALARM' ? ' alarm' : '');
-    document.getElementById('overlayDesc').textContent = state ? state.action : '';
+  const dot = document.getElementById('hdot');
+  const hs  = document.getElementById('hstatus');
+  if (!running)         { dot.className='hdot'; hs.textContent='Idle'; }
+  else if (id==='ALARM'){ dot.className='hdot alarm'; hs.textContent='ALARM'; }
+  else                  { dot.className='hdot run'; hs.textContent='Running'; }
 
-    // header dot
-    const dot = document.getElementById('headerDot');
-    const hs  = document.getElementById('headerStatus');
-    if (!running)         { dot.className='dot'; hs.textContent='Idle'; }
-    else if (id==='ALARM'){ dot.className='dot alarm'; hs.textContent='ALARM'; }
-    else                  { dot.className='dot running'; hs.textContent='Running'; }
+  playAnim(id);
+  addLog('→ '+id+(s?' : '+s.action:''), id==='ALARM'?'err':'info');
 
-    log(`→ ${id}${state ? ' : '+state.action : ''}`, id==='ALARM'?'err':'info');
+  if (id==='ROLL')  { packed++; document.getElementById('cPacked').textContent=packed; }
+  if (id==='STOP')  { cycles++; document.getElementById('cCycles').textContent=cycles; }
+  if (id==='ALARM') { alarms++; document.getElementById('cAlarm').textContent=alarms; }
 
-    // counters
-    if (id === 'ROLL') { packed++; document.getElementById('cntPacked').textContent = packed; }
-    if (id === 'STOP') { cycles++; document.getElementById('cntCycles').textContent = cycles; }
-    if (id === 'ALARM'){ alarms++; document.getElementById('cntAlarm').textContent  = alarms; }
+  if (!running || paused) return;
+  const tr = TR[id];
+  if (!tr) return;
 
-    // show decision UI?
-    const tr = TRANSITIONS[id];
-    const isDecision = tr && !tr.auto;
-    document.getElementById('decisionRow').className = 'decision-row' + (isDecision && running ? ' visible' : '');
-
-    // auto-advance?
-    if (running && !paused && tr && tr.auto) {
-      const delay = id === 'READY' ? baseDelay() * 1.5 : baseDelay();
-      timer = setTimeout(() => advance('auto'), delay);
-    }
+  if (tr.auto) {
+    timer = setTimeout(() => advance('auto'), dur(id));
+  } else {
+    // simulate decision with probability
+    const prob = PROB[id] ?? 0.9;
+    const result = Math.random() < prob ? 'OK' : 'NG';
+    addLog(`  ↳ ${id}: ${result} (${Math.round(prob*100)}% OK rate)`, result==='OK'?'info':'warn');
+    timer = setTimeout(() => advance(result), dur(id));
   }
+}
 
-  function advance(signal) {
-    if (!running || paused) return;
-    clearTimeout(timer);
-    const tr = TRANSITIONS[current];
+function advance(sig) {
+  if (!running||paused) return;
+  clearTimeout(timer);
+  const tr = TR[current];
+  if (!tr) return;
+  const next = tr[sig] || tr.auto;
+  if (next) setState(next);
+}
+
+window.fsmStart = function() {
+  if (running) return;
+  running=true; paused=false;
+  document.getElementById('btnStart').disabled=true;
+  document.getElementById('btnPause').disabled=false;
+  document.getElementById('btnReset').disabled=false;
+  addLog('▶ BK05 simulation started','info');
+  setState('INIT');
+};
+
+window.fsmPause = function() {
+  if (!running) return;
+  paused=!paused;
+  clearTimeout(timer);
+  const btn=document.getElementById('btnPause');
+  btn.textContent=paused?'▶ Resume':'⏸ Pause';
+  document.getElementById('hdot').className=paused?'hdot':'hdot run';
+  document.getElementById('hstatus').textContent=paused?'Paused':'Running';
+  addLog(paused?'⏸ Paused':'▶ Resumed','warn');
+  if (!paused) {
+    const tr=TR[current];
     if (!tr) return;
-    const next = tr[signal] || tr.auto;
-    if (next) setState(next);
-  }
-
-  return {
-    start() {
-      if (running) return;
-      running = true; paused = false;
-      document.getElementById('btnStart').disabled = true;
-      document.getElementById('btnPause').disabled = false;
-      document.getElementById('btnReset').disabled = false;
-      log('▶ Machine started', 'info');
-      setState('INIT');
-    },
-    pause() {
-      if (!running) return;
-      paused = !paused;
-      clearTimeout(timer);
-      const btn = document.getElementById('btnPause');
-      btn.textContent = paused ? '▶ Resume' : '⏸ Pause';
-      document.getElementById('headerDot').className = paused ? 'dot' : 'dot running';
-      document.getElementById('headerStatus').textContent = paused ? 'Paused' : 'Running';
-      log(paused ? '⏸ Paused' : '▶ Resumed', 'warn');
-      if (!paused) {
-        // re-check auto
-        const tr = TRANSITIONS[current];
-        if (tr && tr.auto) {
-          timer = setTimeout(() => advance('auto'), baseDelay());
-        }
-      }
-    },
-    reset() {
-      clearTimeout(timer);
-      running = false; paused = false;
-      document.getElementById('btnStart').disabled = false;
-      document.getElementById('btnPause').disabled = true;
-      document.getElementById('btnPause').textContent = '⏸ Pause';
-      document.getElementById('btnReset').disabled = true;
-      document.getElementById('decisionRow').className = 'decision-row';
-      document.getElementById('headerDot').className = 'dot';
-      document.getElementById('headerStatus').textContent = 'Idle';
-      document.querySelectorAll('.state-item').forEach(el => {
-        el.classList.remove('active','visited','alarm-state');
-      });
-      document.getElementById('overlayState').textContent = 'READY';
-      document.getElementById('overlayState').className = 'state-name';
-      document.getElementById('overlayDesc').textContent = 'Waiting for Start';
-      current = 'READY';
-      log('↺ Reset', 'warn');
-    },
-    decide(signal) {
-      if (!running || paused) return;
-      log(`  ↳ Decision: ${signal}`, signal==='OK'?'info':'err');
-      document.getElementById('decisionRow').className = 'decision-row';
-      advance(signal);
+    if (tr.auto) {
+      timer=setTimeout(()=>advance('auto'), dur(current));
+    } else {
+      const prob=PROB[current]??0.9;
+      const r=Math.random()<prob?'OK':'NG';
+      timer=setTimeout(()=>advance(r), dur(current));
     }
-  };
-})();
+  }
+};
 
-function updateSpeed(v) {
-  speedMultiplier = Number(v);
-  document.getElementById('speedVal').textContent = v + '×';
-}
+window.fsmReset = function() {
+  clearTimeout(timer);
+  running=false; paused=false;
+  restoreAll();
+  tweens.length=0;
+  // return all parts to original
+  Object.keys(meshMap).forEach(role=>{
+    const m=meshMap[role];
+    if(m&&origPos[role]) m.position.copy(origPos[role]);
+  });
+  document.getElementById('btnStart').disabled=false;
+  document.getElementById('btnPause').disabled=true;
+  document.getElementById('btnPause').textContent='⏸ Pause';
+  document.getElementById('btnReset').disabled=true;
+  document.getElementById('hdot').className='hdot';
+  document.getElementById('hstatus').textContent='Idle';
+  document.querySelectorAll('.si').forEach(e=>e.classList.remove('active','visited','alarm-s'));
+  document.getElementById('ovState').textContent='READY';
+  document.getElementById('ovState').className='ov-state';
+  document.getElementById('ovDesc').textContent='Waiting for Start';
+  current='READY';
+  addLog('↺ Reset','warn');
+};
 </script>
 </body>
 </html>
