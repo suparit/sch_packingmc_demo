@@ -110,16 +110,13 @@
       <span class="sval" id="sval">1×</span>
     </div>
   </div>
-
   <div class="counters">
     <div class="cnt"><div class="cnt-val" id="cPacked">0</div><div class="cnt-lbl">Packed</div></div>
     <div class="cnt"><div class="cnt-val" id="cCycles">0</div><div class="cnt-lbl">Cycles</div></div>
     <div class="cnt"><div class="cnt-val" id="cAlarm" style="color:var(--red)">0</div><div class="cnt-lbl">Alarms</div></div>
   </div>
-
   <div class="sec-title">FSM States</div>
   <div class="states" id="statesList"></div>
-
   <div class="log-wrap">
     <div class="log-hdr">
       <span class="sec-title" style="padding:0">Event Log</span>
@@ -134,32 +131,37 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-// ── Part map ──
+// ── Part map (ชื่อจาก glb_picker) ──
+// 1 = roller เก็บงาน (ซ้าย สีม่วง) = roll
+// 2 = roller จ่าย carrier (ขวา สีเขียว) = roll_back
+// 3 = carrier tape (แถบสีดำ) = carrier_tape
+// 4 = cylinder2 (ดันขึ้น +Y) = cylinder2
+// 5 = seal head + cylinder1 (กดลง -Y) = seal_head + cylinder
 const PART_NAMES = {
-  seal_holder:    'Assembly_Daymo-2_8',
-  seal_head_heat: 'Assembly_Daymo-2_7',
-  carrier_tape:   'Assembly_Daymo-2_11',
-  seal_head:      'Assembly_Daymo-2_12',
-  cylinder:       'Assembly_Daymo-2_13',
-  roll:           'Assembly_Daymo-2_14',
-  spring:         'Assembly_Daymo-2_18',
-  roll_back:      'Assembly_Daymo-2_20',
-  cylinder2:      'Assembly_Daymo-2_23',
+  roller_collect: 'Assembly_Daymo-2_14',  // 1 — roller เก็บงาน (ซ้าย)
+  roller_feed:    'Assembly_Daymo-2_20',  // 2 — roller จ่าย carrier (ขวา)
+  carrier_tape:   'Assembly_Daymo-2_11',  // 3 — carrier tape
+  cylinder2:      'Assembly_Daymo-2_23',  // 4 — ดัน carrier ขึ้น +Y
+  seal_head:      'Assembly_Daymo-2_12',  // 5 — seal head กดลง -Y
+  cylinder1:      'Assembly_Daymo-2_13',  // 5 — cylinder1 กดลง -Y
+  seal_heater:    'Assembly_Daymo-2_7',   // heater plate
+  seal_holder:    'Assembly_Daymo-2_8',   // seal holder
+  spring:         'Assembly_Daymo-2_18',  // cover tape spring
 };
 
-// ── FSM ──
+// ── FSM ── (ลำดับตาม BK05 จริง)
 const STATES = [
   {id:'INIT',        action:'Initialize'},
   {id:'READY',       action:'Waiting for Start'},
-  {id:'SEAL',        action:'Heat + Pressure'},       // ← SEAL ก่อน (ตามเครื่องจริง)
+  {id:'SEAL',        action:'Heat + Pressure'},
   {id:'SEAL_CHECK',  action:'Seal OK?'},
-  {id:'INDEX',       action:'Feed Carrier Tape'},     // ← INDEX หลัง SEAL
+  {id:'INDEX',       action:'Feed Carrier Tape'},
   {id:'CHECK_INDEX', action:'Check Position'},
   {id:'LOAD_PART',   action:'Place Component'},
   {id:'VISION',      action:'Inspect Part'},
   {id:'FEED_COVER',  action:'Feed Cover Tape'},
   {id:'CHECK_TEMP',  action:'Temperature Ready?'},
-  {id:'ROLL',        action:'Wind Reel'},
+  {id:'ROLL',        action:'Wind Reel (Collect)'},
   {id:'COUNT_CHECK', action:'Count Done?'},
   {id:'STOP',        action:'Done → READY'},
   {id:'ALARM',       action:'Stop Machine'},
@@ -169,42 +171,43 @@ const TR = {
   INIT:        {auto:'READY'},
   READY:       {auto:'SEAL'},
   SEAL:        {auto:'SEAL_CHECK'},
-  SEAL_CHECK:  {OK:'INDEX',    NG:'ALARM'},
+  SEAL_CHECK:  {OK:'INDEX',     NG:'ALARM'},
   INDEX:       {auto:'CHECK_INDEX'},
-  CHECK_INDEX: {OK:'LOAD_PART',NG:'ALARM'},
+  CHECK_INDEX: {OK:'LOAD_PART', NG:'ALARM'},
   LOAD_PART:   {auto:'VISION'},
   VISION:      {OK:'FEED_COVER',NG:'ALARM'},
   FEED_COVER:  {auto:'CHECK_TEMP'},
-  CHECK_TEMP:  {OK:'ROLL',     NG:'CHECK_TEMP'},
+  CHECK_TEMP:  {OK:'ROLL',      NG:'CHECK_TEMP'},
   ROLL:        {auto:'COUNT_CHECK'},
-  COUNT_CHECK: {OK:'STOP',     NG:'SEAL'},
+  COUNT_CHECK: {OK:'STOP',      NG:'SEAL'},
   STOP:        {auto:'READY'},
   ALARM:       {auto:'INIT'},
 };
 
-const PROB = {SEAL_CHECK:0.98, CHECK_INDEX:0.96, VISION:0.92, CHECK_TEMP:0.85, COUNT_CHECK:0.12};
+const PROB = {SEAL_CHECK:0.98,CHECK_INDEX:0.96,VISION:0.92,CHECK_TEMP:0.85,COUNT_CHECK:0.12};
 
-// BK05 timing ตรงกับวิดีโอ (ms at 1×)
+// BK05 timing (ms at 1×) — 1 full cycle ≈ 1.5s
 const DUR = {
-  INIT:300, READY:600,
-  SEAL:800,         // กด 150ms + hold 500ms + ยก 150ms
-  SEAL_CHECK:200,
-  INDEX:400,        // tape เลื่อน
-  CHECK_INDEX:200,
-  LOAD_PART:300,
-  VISION:400,
-  FEED_COVER:300,
-  CHECK_TEMP:200,
-  ROLL:350,
+  INIT:300, READY:500,
+  SEAL:850,       // กด 150ms + hold 500ms + ยก 150ms + buffer
+  SEAL_CHECK:150,
+  INDEX:600,      // cyl2 ขึ้น + roller หมุน + carrier เลื่อน + cyl2 ลง
+  CHECK_INDEX:150,
+  LOAD_PART:250,
+  VISION:350,
+  FEED_COVER:250,
+  CHECK_TEMP:150,
+  ROLL:400,       // roller เก็บงานหมุน
   COUNT_CHECK:150,
   STOP:400,
   ALARM:800,
 };
 
 window.speedMul = 1;
-const dur = id => (DUR[id]||400) / speedMul;
+const ms  = id => (DUR[id]||400) / speedMul;
+const sec = id => ms(id) / 1000;
 
-// ── Three.js setup ──
+// ── Three.js ──
 const canvas = document.getElementById('c');
 const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));
@@ -212,16 +215,13 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x06080a);
-
 const camera = new THREE.PerspectiveCamera(45,1,0.01,1000);
-camera.position.set(0,1.5,4);
-
-const controls = new OrbitControls(camera,canvas);
+const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
 
 scene.add(new THREE.AmbientLight(0xffffff,0.75));
 const dl = new THREE.DirectionalLight(0xffffff,1.2); dl.position.set(4,6,4); scene.add(dl);
-const dl2 = new THREE.DirectionalLight(0x6688ff,0.35); dl2.position.set(-4,2,-4); scene.add(dl2);
+const dl2= new THREE.DirectionalLight(0x6688ff,0.35); dl2.position.set(-4,2,-4); scene.add(dl2);
 
 function resize(){
   const p=canvas.parentElement;
@@ -234,7 +234,6 @@ new ResizeObserver(resize).observe(canvas.parentElement);
 
 // ── Mesh registry ──
 const meshMap={}, origPos={}, origMat={};
-
 function reg(role,mesh){
   meshMap[role]=mesh;
   origPos[role]=mesh.position.clone();
@@ -243,80 +242,95 @@ function reg(role,mesh){
 
 // ── Tween system ──
 const tweens=[];
-
-function tw(role, delta, durSec, onDone=null){
+function tw(role,delta,durSec,onDone=null){
   const mesh=meshMap[role]; if(!mesh) return;
-  const i=tweens.findIndex(t=>t.role===role); if(i!==-1) tweens.splice(i,1);
-  tweens.push({role,mesh,from:mesh.position.clone(),to:mesh.position.clone().add(delta),
-    dur:durSec,elapsed:0,onDone});
+  const i=tweens.findIndex(t=>t.role===role); if(i>-1) tweens.splice(i,1);
+  tweens.push({role,mesh,from:mesh.position.clone(),
+    to:mesh.position.clone().add(delta),dur:durSec,elapsed:0,onDone});
   document.getElementById('animTag').style.display='block';
 }
-
-function twRot(role, dRot, durSec){
+function twRot(role,deltaRot,durSec,onDone=null){
   const mesh=meshMap[role]; if(!mesh) return;
   const key=role+'_r';
-  const i=tweens.findIndex(t=>t.role===key); if(i!==-1) tweens.splice(i,1);
-  tweens.push({role:key,mesh,fromRot:mesh.rotation.z,toRot:mesh.rotation.z+dRot,
-    isRot:true,dur:durSec,elapsed:0,onDone:null});
+  const i=tweens.findIndex(t=>t.role===key); if(i>-1) tweens.splice(i,1);
+  tweens.push({role:key,mesh,fromRot:mesh.rotation.z,toRot:mesh.rotation.z+deltaRot,
+    isRot:true,dur:durSec,elapsed:0,onDone});
 }
-
-function ret(role, durSec=0.2){
+function ret(role,durSec=0.18){
   const mesh=meshMap[role]; if(!mesh||!origPos[role]) return;
-  const i=tweens.findIndex(t=>t.role===role); if(i!==-1) tweens.splice(i,1);
+  const i=tweens.findIndex(t=>t.role===role); if(i>-1) tweens.splice(i,1);
   tweens.push({role,mesh,from:mesh.position.clone(),to:origPos[role].clone(),
     dur:durSec,elapsed:0,onDone:null});
 }
-
 function ease(t){return t<0.5?2*t*t:-1+(4-2*t)*t;}
 
 // ── Materials ──
 const hlMat   = new THREE.MeshStandardMaterial({color:0x00c9a7,emissive:0x003322,roughness:0.3});
 const alMat   = new THREE.MeshStandardMaterial({color:0xf87171,emissive:0x330000,roughness:0.3});
-const warmMat = new THREE.MeshStandardMaterial({color:0xff8800,emissive:0x331100,roughness:0.3});
+const warmMat = new THREE.MeshStandardMaterial({color:0xff7700,emissive:0x331100,roughness:0.3});
+const moveMat = new THREE.MeshStandardMaterial({color:0xa78bfa,emissive:0x110033,roughness:0.3});
 
-function hl(role,mat){const m=meshMap[role];if(m){if(!origMat[role])origMat[role]=m.material;m.material=mat;}}
-function restoreAll(){Object.keys(meshMap).forEach(r=>{const m=meshMap[r];if(m&&origMat[r])m.material=origMat[r];});}
+function hl(role,mat){const m=meshMap[role];if(m){m.material=mat;}}
+function restoreAll(){Object.keys(meshMap).forEach(r=>{const m=meshMap[r];if(m&&origMat[r])m.material=Array.isArray(origMat[r])?origMat[r].map(x=>x.clone()):origMat[r].clone();});}
 
-// ── Animation per state (ตรงกับวิดีโอ BK05) ──
+// ── BK05 Animation per state ──
 function playAnim(id){
   restoreAll();
+  const S = speedMul;
+
   switch(id){
 
+    // ── 5: SEAL — seal_head + cylinder1 กดลง -Y ──
+    // กดเร็ว (0.15s) → hold 0.5s → ยกขึ้นเร็ว (0.15s)
     case 'SEAL':
-      // กดเร็ว (0.15s) → hold 0.5s → ยกขึ้นเร็ว (0.15s)
-      // seal_head + seal_head_heat กดพร้อมกัน
-      hl('seal_head', warmMat);
-      hl('seal_head_heat', warmMat);
+      hl('seal_head',   warmMat);
+      hl('cylinder1',   warmMat);
+      hl('seal_heater', warmMat);
       hl('seal_holder', hlMat);
-      tw('seal_head',      new THREE.Vector3(0,-0.13,0), 0.15, ()=>{
-        tw('seal_head_heat', new THREE.Vector3(0,-0.13,0), 0.15);
+      // กดลงพร้อมกัน
+      tw('seal_head',   new THREE.Vector3(0,-0.13,0), 0.15/S);
+      tw('cylinder1',   new THREE.Vector3(0,-0.10,0), 0.15/S);
+      tw('seal_heater', new THREE.Vector3(0,-0.13,0), 0.15/S, ()=>{
         // hold 500ms แล้วยกขึ้น
         setTimeout(()=>{
-          ret('seal_head',      0.15);
-          ret('seal_head_heat', 0.15);
-        }, 500/speedMul);
+          ret('seal_head',   0.15/S);
+          ret('cylinder1',   0.15/S);
+          ret('seal_heater', 0.15/S);
+        }, 500/S);
       });
-      tw('seal_head_heat', new THREE.Vector3(0,-0.13,0), 0.15);
       break;
 
+    // ── INDEX — ลำดับ: cylinder2 ดันขึ้น → roller_feed หมุน + carrier เลื่อน → cylinder2 ลง ──
     case 'INDEX':
-      // tape เลื่อนไปหา reel ด้านหน้า (+Z)
-      hl('carrier_tape', hlMat);
-      hl('cylinder', hlMat);
-      tw('cylinder', new THREE.Vector3(0,0,0.06), 0.15, ()=>{
-        tw('carrier_tape', new THREE.Vector3(0,0,0.09), 0.20, ()=>{
+      hl('cylinder2',   moveMat);
+      hl('roller_feed', hlMat);
+      hl('carrier_tape',hlMat);
+
+      // step 1: cylinder2 ดันขึ้น +Y (0.12s)
+      tw('cylinder2', new THREE.Vector3(0,0.08,0), 0.12/S, ()=>{
+        // step 2: roller_feed หมุน + carrier tape เลื่อน (+Z) พร้อมกัน
+        twRot('roller_feed', -Math.PI*2, 0.30/S); // หมุน 1 รอบ
+        tw('carrier_tape', new THREE.Vector3(0,0,0.10), 0.30/S, ()=>{
+          // step 3: carrier reset + cylinder2 ลง
           setTimeout(()=>{
-            ret('carrier_tape', 0.15);
-            ret('cylinder', 0.12);
-          }, 80/speedMul);
+            ret('carrier_tape', 0.15/S);
+            ret('cylinder2',    0.15/S);
+          }, 60/S);
         });
       });
       break;
 
+    // ── ROLL — roller_collect หมุน 360° อยู่กับที่ (สุดท้ายสุด) ──
+    case 'ROLL':
+      hl('roller_collect', hlMat);
+      // หมุน 1 รอบเต็ม (360°)
+      twRot('roller_collect', -Math.PI*2, 0.35/S);
+      break;
+
     case 'LOAD_PART':
-      hl('cylinder2', hlMat);
-      tw('cylinder2', new THREE.Vector3(0,-0.07,0), 0.18, ()=>{
-        setTimeout(()=>ret('cylinder2',0.15), 150/speedMul);
+      hl('cylinder2', moveMat);
+      tw('cylinder2', new THREE.Vector3(0,-0.06,0), 0.18/S, ()=>{
+        setTimeout(()=>ret('cylinder2',0.15/S), 150/S);
       });
       break;
 
@@ -325,21 +339,12 @@ function playAnim(id){
       break;
 
     case 'FEED_COVER':
-      hl('spring', hlMat);
-      tw('spring', new THREE.Vector3(0,0,0.05), 0.18, ()=>{
-        ret('spring', 0.15);
-      });
+      hl('spring', moveMat);
+      tw('spring', new THREE.Vector3(0,0,0.05), 0.18/S, ()=>ret('spring',0.15/S));
       break;
 
     case 'CHECK_TEMP':
-      hl('seal_head_heat', warmMat);
-      break;
-
-    case 'ROLL':
-      hl('roll', hlMat);
-      hl('roll_back', hlMat);
-      twRot('roll',      -0.4, 0.30);
-      twRot('roll_back', -0.4, 0.30);
+      hl('seal_heater', warmMat);
       break;
 
     case 'ALARM':
@@ -360,10 +365,8 @@ function animate(){
   const dt=clock.getDelta();
   controls.update();
   for(let i=tweens.length-1;i>=0;i--){
-    const t=tweens[i];
-    t.elapsed+=dt;
-    const p=Math.min(t.elapsed/t.dur,1);
-    const ep=ease(p);
+    const t=tweens[i]; t.elapsed+=dt;
+    const p=Math.min(t.elapsed/t.dur,1), ep=ease(p);
     if(t.isRot) t.mesh.rotation.z=t.fromRot+(t.toRot-t.fromRot)*ep;
     else t.mesh.position.lerpVectors(t.from,t.to,ep);
     if(p>=1){if(t.onDone)t.onDone();tweens.splice(i,1);}
@@ -388,8 +391,7 @@ new GLTFLoader().load('./export/machine.glb', gltf=>{
     const role=Object.keys(PART_NAMES).find(r=>PART_NAMES[r]===obj.name);
     if(role) reg(role,obj);
   });
-  const n=Object.keys(meshMap).length;
-  addLog(`GLB loaded — ${n}/${Object.keys(PART_NAMES).length} parts mapped`,'info');
+  addLog(`GLB loaded — ${Object.keys(meshMap).length}/${Object.keys(PART_NAMES).length} parts mapped`,'info');
 },null,err=>addLog('GLB error: '+err.message,'err'));
 
 // ── State list UI ──
@@ -438,12 +440,12 @@ function setState(id){
   if(!running||paused) return;
   const tr=TR[id]; if(!tr) return;
   if(tr.auto){
-    timer=setTimeout(()=>advance('auto'),dur(id));
+    timer=setTimeout(()=>advance('auto'),ms(id));
   } else {
     const prob=PROB[id]??0.9;
     const result=Math.random()<prob?'OK':'NG';
     addLog(`  ↳ ${id}: ${result} (${Math.round(prob*100)}% OK)`,result==='OK'?'info':'warn');
-    timer=setTimeout(()=>advance(result),dur(id));
+    timer=setTimeout(()=>advance(result),ms(id));
   }
 }
 
@@ -464,7 +466,6 @@ window.fsmStart=function(){
   addLog('▶ BK05 started','info');
   setState('INIT');
 };
-
 window.fsmPause=function(){
   if(!running) return;
   paused=!paused;clearTimeout(timer);
@@ -474,16 +475,18 @@ window.fsmPause=function(){
   document.getElementById('hstatus').textContent=paused?'Paused':'Running';
   addLog(paused?'⏸ Paused':'▶ Resumed','warn');
   if(!paused){
-    const tr=TR[current];if(!tr) return;
-    if(tr.auto) timer=setTimeout(()=>advance('auto'),dur(current));
-    else{const prob=PROB[current]??0.9;const r=Math.random()<prob?'OK':'NG';timer=setTimeout(()=>advance(r),dur(current));}
+    const tr=TR[current];if(!tr)return;
+    if(tr.auto)timer=setTimeout(()=>advance('auto'),ms(current));
+    else{const p=PROB[current]??0.9;const r=Math.random()<p?'OK':'NG';timer=setTimeout(()=>advance(r),ms(current));}
   }
 };
-
 window.fsmReset=function(){
   clearTimeout(timer);running=false;paused=false;
   restoreAll();tweens.length=0;
-  Object.keys(meshMap).forEach(role=>{const m=meshMap[role];if(m&&origPos[role])m.position.copy(origPos[role]);});
+  Object.keys(meshMap).forEach(role=>{
+    const m=meshMap[role];
+    if(m&&origPos[role]){m.position.copy(origPos[role]);m.rotation.set(0,0,0);}
+  });
   document.getElementById('btnStart').disabled=false;
   document.getElementById('btnPause').disabled=true;
   document.getElementById('btnPause').textContent='⏸ Pause';
@@ -494,8 +497,7 @@ window.fsmReset=function(){
   document.getElementById('ovState').textContent='READY';
   document.getElementById('ovState').className='ov-state';
   document.getElementById('ovDesc').textContent='Waiting for Start';
-  current='READY';
-  addLog('↺ Reset','warn');
+  current='READY';addLog('↺ Reset','warn');
 };
 </script>
 </body>
