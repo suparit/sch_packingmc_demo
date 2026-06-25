@@ -13,10 +13,10 @@
     *{box-sizing:border-box;margin:0;padding:0}
     :root{
       --bg:#0a0c0f;--surface:#111318;--surface2:#1a1d24;--border:#2a2d38;
-      --text:#e8eaf0;--muted:#6b7080;--teal:#00c9a7;--red:#f87171;--amber:#fbbf24;--purple:#a78bfa;
+      --text:#e8eaf0;--muted:#6b7080;--teal:#00c9a7;--red:#f87171;--amber:#fbbf24;--purple:#a78bfa;--green:#4ade80;
     }
     body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
-      display:grid;grid-template-columns:1fr 300px;grid-template-rows:48px 1fr;height:100vh;overflow:hidden}
+      display:grid;grid-template-columns:1fr 290px;grid-template-rows:48px 1fr;height:100vh;overflow:hidden}
     header{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:0 16px;
       background:var(--surface);border-bottom:1px solid var(--border)}
     .logo{font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--teal)}
@@ -25,96 +25,137 @@
     .hdot{width:8px;height:8px;border-radius:50%;background:#4b5563;margin-left:auto;transition:background .3s}
     .hdot.run{background:var(--teal);box-shadow:0 0 6px var(--teal)}
     #hstatus{font-size:12px;color:var(--muted);margin-left:6px}
+
     #canvas-wrap{position:relative;background:#06080a}
     canvas{display:block;width:100%;height:100%}
+
+    /* overlay top-left */
     .overlay{position:absolute;top:12px;left:12px;background:rgba(10,12,15,.9);
-      border:1px solid var(--border);border-radius:10px;padding:10px 14px;min-width:170px}
+      border:1px solid var(--border);border-radius:10px;padding:10px 14px;min-width:170px;pointer-events:none}
     .ov-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
-    .ov-step{font-size:11px;color:var(--amber);margin-bottom:2px}
-    .ov-state{font-size:20px;font-weight:700;color:var(--teal);line-height:1.1;transition:color .3s}
+    .ov-state{font-size:20px;font-weight:700;color:var(--teal);line-height:1.1}
     .ov-desc{font-size:11px;color:var(--muted);margin-top:3px}
+
+    /* anim tag */
     .anim-tag{position:absolute;bottom:12px;left:12px;background:rgba(251,191,36,.15);
-      border:1px solid var(--amber);border-radius:7px;padding:5px 12px;font-size:11px;color:var(--amber);display:none}
+      border:1px solid var(--amber);border-radius:7px;padding:5px 12px;font-size:11px;
+      color:var(--amber);display:none;pointer-events:none}
+
+    /* carrier distance bottom-right */
+    .dist-bar{position:absolute;bottom:12px;right:12px;background:rgba(10,12,15,.88);
+      border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:11px;color:var(--muted)}
+    .dist-val{font-size:16px;font-weight:700;color:var(--amber)}
+
     /* ── Panel ── */
-    .panel{background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
-    /* Step list */
-    .steps-wrap{flex:1;overflow-y:auto;padding:8px;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
-    .step-card{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;
-      border:1px solid var(--border);background:var(--surface2);margin-bottom:5px;transition:all .2s}
-    .step-card.active{border-color:var(--teal);background:rgba(0,201,167,.08)}
-    .step-card.done{border-color:#2a2d38;background:rgba(255,255,255,.02)}
-    .step-card.waiting{border-color:var(--amber);background:rgba(251,191,36,.06)}
-    .step-num{width:20px;height:20px;border-radius:50%;background:var(--border);
-      display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;
-      color:var(--muted);flex-shrink:0;transition:all .2s}
-    .step-card.active .step-num{background:var(--teal);color:#000}
-    .step-card.done .step-num{background:var(--purple);color:#fff}
-    .step-card.waiting .step-num{background:var(--amber);color:#000}
-    .step-info{flex:1;min-width:0}
-    .step-name{font-size:11px;font-weight:600;color:var(--muted);transition:color .2s}
-    .step-card.active .step-name{color:var(--teal)}
-    .step-card.done .step-name{color:var(--text)}
-    .step-card.waiting .step-name{color:var(--amber)}
-    .step-desc{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .step-btn{font-size:10px;font-weight:600;padding:5px 10px;border-radius:6px;cursor:pointer;
-      border:1px solid var(--border);background:var(--surface2);color:var(--muted);white-space:nowrap;
-      transition:all .2s;flex-shrink:0}
-    .step-btn:hover:not(:disabled){border-color:var(--teal);color:var(--text)}
-    .step-btn.ready{border-color:var(--teal);color:var(--teal);background:rgba(0,201,167,.1)}
-    .step-btn.waiting-btn{border-color:var(--amber);color:var(--amber);background:rgba(251,191,36,.1)}
-    .step-btn:disabled{opacity:.3;cursor:not-allowed}
+    .panel{background:var(--surface);border-left:1px solid var(--border);
+      display:flex;flex-direction:column;overflow:hidden}
+
+    /* speed row */
+    .speed-row{padding:10px 12px;border-bottom:1px solid var(--border);
+      display:flex;align-items:center;gap:8px;flex-shrink:0}
+    .slbl{font-size:11px;color:var(--muted);white-space:nowrap}
+    input[type=range]{flex:1;accent-color:var(--teal)}
+    .sval{font-size:11px;color:var(--teal);min-width:24px;text-align:right}
+
     /* counters */
-    .counters{display:flex;border-top:1px solid var(--border);border-bottom:1px solid var(--border);flex-shrink:0}
-    .cnt{flex:1;padding:8px;text-align:center;border-right:1px solid var(--border)}
+    .counters{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+    .cnt{flex:1;padding:8px 4px;text-align:center;border-right:1px solid var(--border)}
     .cnt:last-child{border-right:none}
     .cnt-val{font-size:16px;font-weight:700;color:var(--teal)}
-    .cnt-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:1px}
+    .cnt-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:1px}
+
+    /* step list */
+    .steps-wrap{flex:1;overflow-y:auto;padding:8px 6px;
+      scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+
+    .step-card{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:8px;
+      border:1px solid var(--border);background:var(--surface2);margin-bottom:4px;transition:border-color .2s}
+    .step-card.unlocked{border-color:rgba(0,201,167,.3)}
+    .step-card.locked{opacity:.45}
+    .step-card.start-card{border-color:var(--amber)}
+
+    .step-num{width:19px;height:19px;border-radius:50%;display:flex;align-items:center;
+      justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;
+      background:var(--border);color:var(--muted)}
+    .step-card.unlocked .step-num{background:var(--teal);color:#000}
+    .step-card.start-card .step-num{background:var(--amber);color:#000}
+
+    .step-info{flex:1;min-width:0}
+    .step-name{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+    .step-card.unlocked .step-name{color:var(--teal)}
+    .step-card.start-card .step-name{color:var(--amber)}
+    .step-desc{font-size:9px;color:var(--muted);margin-top:1px;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+    .step-btn{font-size:10px;font-weight:600;padding:5px 9px;border-radius:6px;cursor:pointer;
+      border:1px solid var(--border);background:var(--surface);color:var(--muted);
+      white-space:nowrap;transition:all .15s;flex-shrink:0}
+    .step-btn.go{border-color:var(--teal);color:var(--teal);background:rgba(0,201,167,.1)}
+    .step-btn.go:hover{background:rgba(0,201,167,.2)}
+    .step-btn.go-start{border-color:var(--amber);color:var(--amber);background:rgba(251,191,36,.1)}
+    .step-btn.go-start:hover{background:rgba(251,191,36,.2)}
+    .step-btn.go-reset{border-color:var(--red);color:var(--red);background:rgba(248,113,113,.1)}
+    .step-btn.go-reset:hover{background:rgba(248,113,113,.2)}
+    .step-btn:disabled{opacity:.3;cursor:not-allowed}
+
     /* log */
-    .log-wrap{border-top:1px solid var(--border);height:130px;display:flex;flex-direction:column;flex-shrink:0}
-    .log-hdr{padding:5px 12px;display:flex;justify-content:space-between;align-items:center}
-    .log-clr{font-size:10px;color:var(--muted);cursor:pointer}.log-clr:hover{color:var(--text)}
+    .log-wrap{border-top:1px solid var(--border);height:120px;display:flex;flex-direction:column;flex-shrink:0}
+    .log-hdr{padding:5px 12px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+    .log-title{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+    .log-clr{font-size:10px;color:var(--muted);cursor:pointer}
+    .log-clr:hover{color:var(--text)}
     .log-body{flex:1;overflow-y:auto;padding:0 12px 6px;font-family:monospace;font-size:10px;
       line-height:1.7;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
     .le .ts{color:#4b5563;margin-right:5px}
     .le.info .ev{color:var(--teal)}.le.warn .ev{color:var(--amber)}.le.err .ev{color:var(--red)}
-    /* carrier distance indicator */
-    .dist-bar{position:absolute;bottom:12px;right:12px;background:rgba(10,12,15,.88);
-      border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--muted)}
-    .dist-val{font-size:16px;font-weight:700;color:var(--amber);display:inline}
   </style>
 </head>
 <body>
+
 <header>
   <span class="logo">BK05</span>
   <span style="color:var(--border)">|</span>
   <span class="htitle">SMD Reel Packing — Digital Twin</span>
   <span class="badge">MANUAL</span>
   <div class="hdot" id="hdot"></div>
-  <span id="hstatus">Idle</span>
+  <span id="hstatus">Idle — กด START ก่อน</span>
 </header>
 
 <div id="canvas-wrap">
   <canvas id="c"></canvas>
   <div class="overlay">
-    <div class="ov-label">Current State</div>
-    <div class="ov-step" id="ovStep">— กด Start เพื่อเริ่ม</div>
+    <div class="ov-label">Current Action</div>
     <div class="ov-state" id="ovState">READY</div>
-    <div class="ov-desc" id="ovDesc">Waiting for Start</div>
+    <div class="ov-desc" id="ovDesc">กด ▶ START เพื่อเริ่มต้น</div>
   </div>
   <div class="anim-tag" id="animTag">⟳ Animating</div>
   <div class="dist-bar">Carrier: <span class="dist-val" id="distVal">0.0</span> mm</div>
 </div>
 
 <div class="panel">
-  <div class="steps-wrap" id="stepsList"></div>
+  <!-- Speed -->
+  <div class="speed-row">
+    <span class="slbl">Speed</span>
+    <input type="range" id="spd" min="0.5" max="4" step="0.5" value="1"
+      oninput="speedMul=+this.value;document.getElementById('sval').textContent=this.value+'×'">
+    <span class="sval" id="sval">1×</span>
+  </div>
+
+  <!-- Counters -->
   <div class="counters">
     <div class="cnt"><div class="cnt-val" id="cCycles">0</div><div class="cnt-lbl">Cycles</div></div>
+    <div class="cnt"><div class="cnt-val" id="cFeed">0</div><div class="cnt-lbl">Feed</div></div>
     <div class="cnt"><div class="cnt-val" id="cSeals">0</div><div class="cnt-lbl">Seals</div></div>
-    <div class="cnt"><div class="cnt-val" id="cAdv">0</div><div class="cnt-lbl">Advance</div></div>
+    <div class="cnt"><div class="cnt-val" id="cRoll">0</div><div class="cnt-lbl">Roll</div></div>
   </div>
+
+  <!-- Step Cards -->
+  <div class="steps-wrap" id="stepsList"></div>
+
+  <!-- Log -->
   <div class="log-wrap">
     <div class="log-hdr">
-      <span style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)">Event Log</span>
+      <span class="log-title">Event Log</span>
       <span class="log-clr" onclick="document.getElementById('logBody').innerHTML=''">Clear</span>
     </div>
     <div class="log-body" id="logBody"></div>
@@ -139,366 +180,418 @@ const PART_NAMES = {
   spring:         'Assembly_Daymo-2_18',
 };
 
-// ── Manual Steps Definition ──
-// id, name, desc, btnLabel, animFn
+// ── Step Definitions ──
+// type: 'start' | 'free' | 'reset'
 const STEPS = [
-  { id:'START',        name:'START',        desc:'Cylinder2 ดันขึ้น +Y ล็อก Carrier',  btn:'▶ Start'          },
-  { id:'FEED_CARRIER', name:'FEED CARRIER',  desc:'Roller จ่าย Carrier หมุน 1 รอบ →',    btn:'⟳ Feed Carrier'   },
-  { id:'INDEX',        name:'INDEX',         desc:'ตรวจสอบ: มี Carrier หรือไม่?',          btn:'✓ มี Carrier'      },
-  { id:'CHECK_INDEX',  name:'CHECK INDEX',   desc:'ตรวจสอบ: มีชิ้นงานหรือไม่?',            btn:'✓ มีชิ้นงาน'       },
-  { id:'LOAD_PART',    name:'LOAD PART',     desc:'ยืนยัน: วางชิ้นงานแล้ว',                btn:'✓ วางแล้ว'          },
-  { id:'SEAL',         name:'SEAL',          desc:'Cylinder1 กดลง -Y → Seal → ยกขึ้น',   btn:'⬇ Seal'            },
-  { id:'VISION',       name:'VISION',        desc:'ตรวจสอบคุณภาพการ Seal',                 btn:'👁 Inspect'         },
-  { id:'ROLL_COLLECT', name:'ROLL COLLECT',  desc:'Roller เก็บงาน (ม่วง) หมุน 1 รอบ ←',  btn:'⟳ Roll Collect'   },
-  { id:'ADVANCE',      name:'ADVANCE',       desc:'Carrier เลื่อนไปหน้า +24.5 mm',        btn:'→ Advance 24.5mm' },
-  { id:'RESET',        name:'RESET',         desc:'รีเซ็ตกลับต้นใหม่',                     btn:'↺ Reset'           },
+  { id:'START',        name:'START',        desc:'Cylinder2 ดันขึ้น +Y ล็อก Carrier',      btn:'▶ Start',          type:'start'  },
+  { id:'FEED_CARRIER', name:'FEED CARRIER', desc:'Roller จ่าย + Carrier เลื่อน +24.5mm',    btn:'⟳ Feed Carrier',   type:'free'   },
+  { id:'INDEX',        name:'INDEX',        desc:'ตรวจสอบ: มี Carrier?',                     btn:'✓ มี Carrier',     type:'free'   },
+  { id:'CHECK_INDEX',  name:'CHECK INDEX',  desc:'ตรวจสอบ: มีชิ้นงาน?',                      btn:'✓ มีชิ้นงาน',      type:'free'   },
+  { id:'LOAD_PART',    name:'LOAD PART',    desc:'Cylinder2 วางชิ้นงาน',                      btn:'✓ วางแล้ว',        type:'free'   },
+  { id:'SEAL',         name:'SEAL',         desc:'Cylinder1 กดลง → Seal → ยกขึ้น',           btn:'⬇ Seal',           type:'free'   },
+  { id:'VISION',       name:'VISION',       desc:'ตรวจสอบคุณภาพการ Seal',                    btn:'👁 Inspect',        type:'free'   },
+  { id:'ROLL_COLLECT', name:'ROLL COLLECT', desc:'Roller เก็บงาน (ม่วง) หมุน 1 รอบ',        btn:'⟳ Roll Collect',   type:'free'   },
+  { id:'RESET',        name:'RESET',        desc:'Reset กลับต้น → เริ่ม Cycle ใหม่',         btn:'↺ Reset',          type:'reset'  },
 ];
 
 // ── Three.js Setup ──
 const canvas = document.getElementById('c');
 const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
+
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x06080a);
-const camera = new THREE.PerspectiveCamera(45,1,0.01,1000);
+
+const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 1000);
 const controls = new OrbitControls(camera, canvas);
 controls.enableDamping = true;
-scene.add(new THREE.AmbientLight(0xffffff,0.75));
-const dl = new THREE.DirectionalLight(0xffffff,1.2); dl.position.set(4,6,4); scene.add(dl);
-const dl2= new THREE.DirectionalLight(0x6688ff,0.35); dl2.position.set(-4,2,-4); scene.add(dl2);
+
+scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+const dl = new THREE.DirectionalLight(0xffffff, 1.2); dl.position.set(4,6,4); scene.add(dl);
+const dl2= new THREE.DirectionalLight(0x6688ff, 0.35); dl2.position.set(-4,2,-4); scene.add(dl2);
 
 function resize(){
-  const p=canvas.parentElement;
-  renderer.setSize(p.clientWidth,p.clientHeight,false);
-  camera.aspect=p.clientWidth/p.clientHeight;
+  const p = canvas.parentElement;
+  renderer.setSize(p.clientWidth, p.clientHeight, false);
+  camera.aspect = p.clientWidth / p.clientHeight;
   camera.updateProjectionMatrix();
 }
 resize();
 new ResizeObserver(resize).observe(canvas.parentElement);
 
 // ── Mesh registry ──
-const meshMap={}, origPos={}, origMat={};
-function reg(role,mesh){
-  meshMap[role]=mesh;
-  origPos[role]=mesh.position.clone();
-  origMat[role]=Array.isArray(mesh.material)?mesh.material.map(m=>m.clone()):mesh.material.clone();
+const meshMap = {}, origPos = {}, origMat = {};
+function reg(role, mesh){
+  meshMap[role]   = mesh;
+  origPos[role]   = mesh.position.clone();
+  origMat[role]   = Array.isArray(mesh.material)
+    ? mesh.material.map(m => m.clone())
+    : mesh.material.clone();
 }
-
-// ── Tween system ──
-const tweens=[];
-function tw(role,delta,durSec,onDone=null){
-  const mesh=meshMap[role]; if(!mesh) return;
-  const i=tweens.findIndex(t=>t.role===role); if(i>-1) tweens.splice(i,1);
-  tweens.push({role,mesh,from:mesh.position.clone(),
-    to:mesh.position.clone().add(delta),dur:durSec,elapsed:0,onDone});
-  document.getElementById('animTag').style.display='block';
-}
-function twRot(role,deltaRot,durSec,axis='z',onDone=null){
-  const mesh=meshMap[role]; if(!mesh) return;
-  const key=role+'_r';
-  const i=tweens.findIndex(t=>t.role===key); if(i>-1) tweens.splice(i,1);
-  tweens.push({role:key,mesh,fromRot:mesh.rotation[axis],toRot:mesh.rotation[axis]+deltaRot,
-    isRot:true,rotAxis:axis,dur:durSec,elapsed:0,onDone});
-}
-function ret(role,durSec=0.18){
-  const mesh=meshMap[role]; if(!mesh||!origPos[role]) return;
-  const i=tweens.findIndex(t=>t.role===role); if(i>-1) tweens.splice(i,1);
-  tweens.push({role,mesh,from:mesh.position.clone(),to:origPos[role].clone(),dur:durSec,elapsed:0,onDone:null});
-}
-function ease(t){return t<0.5?2*t*t:-1+(4-2*t)*t;}
 
 // ── Materials ──
-const hlMat   = new THREE.MeshStandardMaterial({color:0x00c9a7,emissive:0x003322,roughness:0.3});
-const alMat   = new THREE.MeshStandardMaterial({color:0xf87171,emissive:0x330000,roughness:0.3});
-const warmMat = new THREE.MeshStandardMaterial({color:0xff7700,emissive:0x331100,roughness:0.3});
-const moveMat = new THREE.MeshStandardMaterial({color:0xa78bfa,emissive:0x110033,roughness:0.3});
-const feedMat = new THREE.MeshStandardMaterial({color:0x4ade80,emissive:0x002211,roughness:0.3});
-const blueMat = new THREE.MeshStandardMaterial({color:0x60a5fa,emissive:0x001133,roughness:0.2});
+const hlMat   = new THREE.MeshStandardMaterial({color:0x00c9a7, emissive:0x003322, roughness:0.3});
+const warmMat = new THREE.MeshStandardMaterial({color:0xff7700, emissive:0x331100, roughness:0.3});
+const moveMat = new THREE.MeshStandardMaterial({color:0xa78bfa, emissive:0x110033, roughness:0.3});
+const feedMat = new THREE.MeshStandardMaterial({color:0x4ade80, emissive:0x002211, roughness:0.3});
+const blueMat = new THREE.MeshStandardMaterial({color:0x60a5fa, emissive:0x001133, roughness:0.2});
+const amberMat= new THREE.MeshStandardMaterial({color:0xfbbf24, emissive:0x221100, roughness:0.25});
 
-function hl(role,mat){const m=meshMap[role];if(m)m.material=mat;}
+function hl(role, mat){
+  const m = meshMap[role];
+  if(!m) return;
+  m.material = mat;
+}
+function restoreOne(role){
+  const m = meshMap[role];
+  if(!m || !origMat[role]) return;
+  m.material = Array.isArray(origMat[role])
+    ? origMat[role].map(x => x.clone())
+    : origMat[role].clone();
+}
 function restoreAll(){
-  Object.keys(meshMap).forEach(r=>{
-    const m=meshMap[r];
-    if(m&&origMat[r])m.material=Array.isArray(origMat[r])?origMat[r].map(x=>x.clone()):origMat[r].clone();
-  });
+  Object.keys(meshMap).forEach(restoreOne);
 }
 function resetPositions(){
-  Object.keys(meshMap).forEach(role=>{
-    const m=meshMap[role];
-    if(m&&origPos[role]){m.position.copy(origPos[role]);m.rotation.set(0,0,0);}
+  Object.keys(meshMap).forEach(role => {
+    const m = meshMap[role];
+    if(m && origPos[role]){
+      m.position.copy(origPos[role]);
+      m.rotation.set(0, 0, 0);
+    }
   });
 }
+
+// ── Tween system (position) ──
+const tweens = [];
+function tw(role, delta, durSec, onDone=null){
+  const mesh = meshMap[role]; if(!mesh) return;
+  const key = role;
+  const i = tweens.findIndex(t => t.key === key); if(i>-1) tweens.splice(i,1);
+  tweens.push({key, mesh,
+    from: mesh.position.clone(),
+    to:   mesh.position.clone().add(delta),
+    dur: durSec, elapsed:0, isRot:false, onDone
+  });
+  document.getElementById('animTag').style.display = 'block';
+}
+function ret(role, durSec=0.2){
+  const mesh = meshMap[role]; if(!mesh || !origPos[role]) return;
+  const key = role;
+  const i = tweens.findIndex(t => t.key === key); if(i>-1) tweens.splice(i,1);
+  tweens.push({key, mesh,
+    from: mesh.position.clone(),
+    to:   origPos[role].clone(),
+    dur: durSec, elapsed:0, isRot:false, onDone:null
+  });
+}
+
+// ── Roller spin: หมุนรอบตัวเอง n รอบ (pivot = ตำแหน่งเดิมของ mesh) ──
+// ใช้ tween หมุน rotation แกน X ทีละ 1 รอบ วนซ้ำตาม n
+function spinRoller(role, mat, nRounds, durPerRound, onDone=null){
+  const mesh = meshMap[role]; if(!mesh){ if(onDone) onDone(); return; }
+  hl(role, mat);
+  // คำนวณ total rotation
+  const totalRad = Math.PI * 2 * nRounds;
+  const key = role + '_spin';
+  const i = tweens.findIndex(t => t.key === key); if(i>-1) tweens.splice(i,1);
+  const startRot = mesh.rotation.x;
+  tweens.push({key, mesh,
+    fromRot: startRot,
+    toRot:   startRot + totalRad,
+    dur: durPerRound * nRounds,
+    elapsed: 0,
+    isRot: true, rotAxis:'x',
+    onDone
+  });
+  document.getElementById('animTag').style.display = 'block';
+}
+
+function ease(t){ return t<0.5 ? 2*t*t : -1+(4-2*t)*t; }
 
 // ── Render loop ──
 const clock = new THREE.Clock();
 function animate(){
   requestAnimationFrame(animate);
-  const dt=clock.getDelta();
+  const dt = clock.getDelta();
   controls.update();
-  for(let i=tweens.length-1;i>=0;i--){
-    const t=tweens[i]; t.elapsed+=dt;
-    const p=Math.min(t.elapsed/t.dur,1), ep=ease(p);
-    if(t.isRot) t.mesh.rotation[t.rotAxis||'z']=t.fromRot+(t.toRot-t.fromRot)*ep;
-    else t.mesh.position.lerpVectors(t.from,t.to,ep);
-    if(p>=1){if(t.onDone)t.onDone();tweens.splice(i,1);}
+  for(let i = tweens.length-1; i>=0; i--){
+    const t = tweens[i];
+    t.elapsed += dt;
+    const p  = Math.min(t.elapsed / t.dur, 1);
+    const ep = ease(p);
+    if(t.isRot){
+      t.mesh.rotation[t.rotAxis||'x'] = t.fromRot + (t.toRot - t.fromRot) * ep;
+    } else {
+      t.mesh.position.lerpVectors(t.from, t.to, ep);
+    }
+    if(p >= 1){
+      if(t.onDone) t.onDone();
+      tweens.splice(i, 1);
+    }
   }
-  if(tweens.length===0) document.getElementById('animTag').style.display='none';
-  renderer.render(scene,camera);
+  if(tweens.length === 0) document.getElementById('animTag').style.display='none';
+  renderer.render(scene, camera);
 }
 animate();
 
 // ── Load GLB ──
-new GLTFLoader().load('./export/machine.glb', gltf=>{
+new GLTFLoader().load('./export/machine.glb', gltf => {
   scene.add(gltf.scene);
-  const box=new THREE.Box3().setFromObject(gltf.scene);
-  const center=box.getCenter(new THREE.Vector3());
-  const size=box.getSize(new THREE.Vector3()).length();
+  const box    = new THREE.Box3().setFromObject(gltf.scene);
+  const center = box.getCenter(new THREE.Vector3());
+  const size   = box.getSize(new THREE.Vector3()).length();
   gltf.scene.position.sub(center);
-  camera.position.set(0,size*0.3,size*1.15);
-  controls.target.set(0,0,0);
+  camera.position.set(0, size*0.3, size*1.15);
+  controls.target.set(0, 0, 0);
   controls.update();
-  gltf.scene.traverse(obj=>{
+  gltf.scene.traverse(obj => {
     if(!obj.isMesh) return;
-    const role=Object.keys(PART_NAMES).find(r=>PART_NAMES[r]===obj.name);
-    if(role) reg(role,obj);
+    const role = Object.keys(PART_NAMES).find(r => PART_NAMES[r] === obj.name);
+    if(role) reg(role, obj);
   });
-  addLog(`GLB loaded — ${Object.keys(meshMap).length}/${Object.keys(PART_NAMES).length} parts mapped`,'info');
-  renderStepUI();
-},null,err=>addLog('GLB error: '+err.message,'err'));
+  addLog(`GLB loaded — ${Object.keys(meshMap).length}/${Object.keys(PART_NAMES).length} parts mapped`, 'info');
+}, null, err => addLog('GLB error: '+err.message, 'err'));
 
 // ── Log ──
-function addLog(msg,type='info'){
-  const b=document.getElementById('logBody');
-  const ts=new Date().toTimeString().slice(0,8);
-  const el=document.createElement('div');
-  el.className='le '+type;
-  el.innerHTML=`<span class="ts">${ts}</span><span class="ev">${msg}</span>`;
-  b.appendChild(el);b.scrollTop=b.scrollHeight;
+function addLog(msg, type='info'){
+  const b  = document.getElementById('logBody');
+  const ts = new Date().toTimeString().slice(0,8);
+  const el = document.createElement('div');
+  el.className = 'le ' + type;
+  el.innerHTML = `<span class="ts">${ts}</span><span class="ev">${msg}</span>`;
+  b.appendChild(el);
+  b.scrollTop = b.scrollHeight;
 }
 
-// ── State ──
-let currentStep = 0;   // index into STEPS
-let cycles=0, seals=0, advances=0;
-let carrierMM = 0;     // total carrier advance in mm
-let animating = false;
+// ── Global State ──
+window.speedMul = 1;
+let started     = false;   // ยังไม่กด START
+let animating   = false;
+let cycles=0, feedCount=0, sealCount=0, rollCount=0;
+let carrierMM   = 0;
 
-// ── Step UI ──
-function renderStepUI(){
+// ── Overlay helper ──
+function setOverlay(name, desc){
+  document.getElementById('ovState').textContent = name;
+  document.getElementById('ovDesc').textContent  = desc;
+}
+
+// ── Build Step UI ──
+function buildUI(){
   const sl = document.getElementById('stepsList');
-  sl.innerHTML='';
-  STEPS.forEach((s,i)=>{
+  sl.innerHTML = '';
+  STEPS.forEach((s, i) => {
+    const locked  = (s.type==='start' && started) ||
+                    (s.type==='free'  && !started) ||
+                    (s.type==='reset' && !started);
     const card = document.createElement('div');
-    const isCurrent = (i===currentStep);
-    card.className='step-card' + (isCurrent?' active':i<currentStep?' done':'');
-    card.id='sc_'+i;
-    card.innerHTML=`
+    let cardCls = 'step-card';
+    if(s.type==='start' && !started) cardCls += ' start-card';
+    else if(!locked) cardCls += ' unlocked';
+    else             cardCls += ' locked';
+    card.className = cardCls;
+    card.id = 'sc_'+i;
+
+    let btnCls = 'step-btn';
+    if(s.type==='start' && !started)   btnCls += ' go-start';
+    else if(s.type==='reset' && started) btnCls += ' go-reset';
+    else if(!locked)                   btnCls += ' go';
+
+    card.innerHTML = `
       <div class="step-num">${i+1}</div>
       <div class="step-info">
         <div class="step-name">${s.name}</div>
         <div class="step-desc">${s.desc}</div>
       </div>
-      <button class="step-btn${isCurrent?' ready':''}"
+      <button class="step-btn ${btnCls.replace('step-btn','').trim()}"
         id="sb_${i}"
-        ${isCurrent?'':'disabled'}
+        ${locked ? 'disabled' : ''}
         onclick="doStep(${i})"
       >${s.btn}</button>
     `;
     sl.appendChild(card);
   });
-  const active=document.getElementById('sc_'+currentStep);
-  if(active) active.scrollIntoView({block:'nearest',behavior:'smooth'});
-}
-
-function setOverlay(stepIdx){
-  const s=STEPS[stepIdx];
-  document.getElementById('ovStep').textContent=`Step ${stepIdx+1} / ${STEPS.length}`;
-  document.getElementById('ovState').textContent=s.name;
-  document.getElementById('ovDesc').textContent=s.desc;
-  document.getElementById('hdot').className='hdot run';
-  document.getElementById('hstatus').textContent='Manual';
 }
 
 // ── Do Step ──
 window.doStep = function(idx){
   if(animating) return;
-  if(idx!==currentStep) return;
-  const s=STEPS[idx];
+  const s = STEPS[idx];
+
+  // Lock check
+  if(s.type==='free'  && !started) return;
+  if(s.type==='reset' && !started) return;
+
   addLog(`[${idx+1}] ${s.name}`, 'info');
-  setOverlay(idx);
-  runAnim(s.id, ()=>{
-    // after anim: advance to next step (unless RESET which goes to 0)
-    if(s.id==='RESET'){
-      currentStep=0;
-      document.getElementById('ovStep').textContent='— กด Start เพื่อเริ่ม';
-      document.getElementById('ovState').textContent='READY';
-      document.getElementById('ovDesc').textContent='Waiting for Start';
-      document.getElementById('hdot').className='hdot';
-      document.getElementById('hstatus').textContent='Idle';
-    } else {
-      currentStep=idx+1;
-      if(currentStep>=STEPS.length) currentStep=0; // safety
-    }
-    renderStepUI();
+  setOverlay(s.name, s.desc);
+  document.getElementById('hdot').className = 'hdot run';
+  document.getElementById('hstatus').textContent = s.name;
+
+  runAnim(s.id, () => {
+    if(s.id === 'START')  { started = true;  buildUI(); }
+    if(s.id === 'RESET')  { started = false; buildUI(); }
+    else buildUI(); // refresh button states
   });
 };
 
-// ── Animations per Step ──
+// ── Animation per Step ──
 function runAnim(id, onDone){
   restoreAll();
-  animating=true;
-  const done=()=>{ animating=false; onDone(); };
+  animating = true;
+  const S   = window.speedMul;
+  const end = () => { animating = false; onDone(); };
 
   switch(id){
 
-    // Step 1 — START: Cylinder2 ดันขึ้น +Y ล็อก Carrier ติดลูกกลิ้ง
+    // ── 1. START: Cylinder2 ดันขึ้น +Y ล็อก Carrier ──
     case 'START':
-      hl('cylinder2', moveMat);
+      hl('cylinder2',    moveMat);
       hl('carrier_tape', hlMat);
-      tw('cylinder2', new THREE.Vector3(0, 0.08, 0), 0.35, ()=>{
-        addLog('  Cylinder2 ดันขึ้น +Y — Carrier ล็อกแล้ว','info');
-        setTimeout(done, 300);
+      tw('cylinder2', new THREE.Vector3(0, 0.08, 0), 0.35/S, () => {
+        addLog('  Cylinder2 UP +Y — Carrier locked ✓', 'info');
+        setTimeout(end, 200/S);
       });
       break;
 
-    // Step 2 — FEED_CARRIER: Roller จ่าย (ขวา สีเขียว) หมุน 1 รอบ CW (ตามลูกศรแดง)
+    // ── 2. FEED_CARRIER: roller_feed หมุน 1 รอบรอบตัวเอง + carrier เลื่อน ──
     case 'FEED_CARRIER':
-      hl('roller_feed', feedMat);
-      twRot('roller_feed', -Math.PI*2, 0.55, 'x', ()=>{
-        addLog('  Roller Feed หมุน 1 รอบ ✓','info');
-        setTimeout(done, 200);
-      });
-      break;
-
-    // Step 3 — INDEX: flash carrier_tape = ตรวจว่ามี Carrier
-    case 'INDEX':
       hl('carrier_tape', hlMat);
-      hl('cylinder2', moveMat);
-      let n3=0;
-      const blink3=()=>{
-        if(n3>=6){addLog('  INDEX: Carrier ตรวจพบ ✓','info');setTimeout(done,150);return;}
-        const on=n3%2===0;
-        hl('carrier_tape', on?hlMat:null);
-        if(!on&&origMat['carrier_tape'])
-          meshMap['carrier_tape'].material=Array.isArray(origMat['carrier_tape'])?origMat['carrier_tape'].map(x=>x.clone()):origMat['carrier_tape'].clone();
-        n3++; setTimeout(blink3, 110);
-      };
-      blink3();
-      break;
-
-    // Step 4 — CHECK_INDEX: ตรวจชิ้นงาน — jitter cylinder2 + flash
-    case 'CHECK_INDEX':
-      hl('cylinder2', moveMat);
-      hl('seal_holder', hlMat);
-      tw('cylinder2', new THREE.Vector3(0.005,0,0), 0.06, ()=>{
-        ret('cylinder2',0.06);
-        let n4=0;
-        const blink4=()=>{
-          if(n4>=4){addLog('  CHECK_INDEX: ชิ้นงานตรวจพบ ✓','info');setTimeout(done,150);return;}
-          const on=n4%2===0;
-          hl('seal_holder', on?hlMat:moveMat); n4++; setTimeout(blink4,130);
-        };
-        blink4();
+      // roller_feed หมุน 1 รอบรอบตัวเอง (แกน X = หมุนแนวล้อรถ)
+      spinRoller('roller_feed', feedMat, 1, 0.50/S, () => {
+        restoreOne('roller_feed');
+        feedCount++;
+        carrierMM += 24.5;
+        document.getElementById('cFeed').textContent  = feedCount;
+        document.getElementById('distVal').textContent = carrierMM.toFixed(1);
+        addLog(`  Feed #${feedCount} — Carrier +24.5mm (รวม ${carrierMM.toFixed(1)} mm) ✓`, 'info');
+        // carrier tape เลื่อนสั้นๆ แล้ว reset กลับ (visual only)
+        tw('carrier_tape', new THREE.Vector3(-0.098, 0, 0), 0.28/S, () => {
+          setTimeout(() => ret('carrier_tape', 0.18/S), 80/S);
+          setTimeout(end, 350/S);
+        });
       });
       break;
 
-    // Step 5 — LOAD_PART: cylinder2 กดลง -Y วางชิ้นงาน แล้วยกขึ้น
+    // ── 3. INDEX: flash carrier_tape ยืนยันว่ามี carrier ──
+    case 'INDEX':{
+      hl('carrier_tape', hlMat);
+      hl('cylinder2',    moveMat);
+      let n=0;
+      const blink=()=>{
+        if(n>=6){ addLog('  INDEX: Carrier OK ✓','info'); setTimeout(end,120/S); return; }
+        const on = n%2===0;
+        hl('carrier_tape', on ? hlMat : null);
+        if(!on) restoreOne('carrier_tape');
+        n++; setTimeout(blink, 100/S);
+      };
+      blink();
+      break;
+    }
+
+    // ── 4. CHECK_INDEX: cylinder2 jitter + seal_holder flash ──
+    case 'CHECK_INDEX':{
+      hl('cylinder2',    moveMat);
+      hl('seal_holder',  hlMat);
+      tw('cylinder2', new THREE.Vector3(0.006,0,0), 0.06/S, ()=>{
+        ret('cylinder2', 0.06/S);
+        let n=0;
+        const blink=()=>{
+          if(n>=4){ addLog('  CHECK_INDEX: Part detected ✓','info'); setTimeout(end,120/S); return; }
+          hl('seal_holder', n%2===0 ? amberMat : hlMat);
+          n++; setTimeout(blink, 120/S);
+        };
+        blink();
+      });
+      break;
+    }
+
+    // ── 5. LOAD_PART: cylinder2 กดลง -Y วางชิ้นงาน แล้วยกขึ้น ──
     case 'LOAD_PART':
       hl('cylinder2', moveMat);
-      tw('cylinder2', new THREE.Vector3(0,-0.05,0), 0.22, ()=>{
+      tw('cylinder2', new THREE.Vector3(0,-0.05,0), 0.22/S, ()=>{
         addLog('  วางชิ้นงาน ✓','info');
-        setTimeout(()=>ret('cylinder2',0.18), 300);
-        setTimeout(done, 600);
+        setTimeout(()=>ret('cylinder2', 0.20/S), 280/S);
+        setTimeout(end, 580/S);
       });
       break;
 
-    // Step 6 — SEAL: Cylinder1 + seal_head กดลง -Y → hold → ยกขึ้น
+    // ── 6. SEAL: cylinder1 + seal_head กดลง hold 600ms ยกขึ้น ──
     case 'SEAL':
       hl('seal_head',   warmMat);
       hl('cylinder1',   warmMat);
       hl('seal_heater', warmMat);
       hl('seal_holder', hlMat);
-      tw('seal_head',   new THREE.Vector3(0,-0.13,0), 0.18);
-      tw('cylinder1',   new THREE.Vector3(0,-0.10,0), 0.18);
-      tw('seal_heater', new THREE.Vector3(0,-0.13,0), 0.18, ()=>{
-        addLog('  Sealing… (hold 600ms)','info');
+      tw('seal_head',   new THREE.Vector3(0,-0.13,0), 0.18/S);
+      tw('cylinder1',   new THREE.Vector3(0,-0.10,0), 0.18/S);
+      tw('seal_heater', new THREE.Vector3(0,-0.13,0), 0.18/S, ()=>{
+        addLog('  Sealing hold…','info');
         setTimeout(()=>{
-          ret('seal_head',   0.18);
-          ret('cylinder1',   0.18);
-          ret('seal_heater', 0.18);
-          seals++;
-          document.getElementById('cSeals').textContent=seals;
-          addLog('  SEAL เสร็จ ✓','info');
-          setTimeout(done, 250);
-        }, 600);
+          ret('seal_head',   0.18/S);
+          ret('cylinder1',   0.18/S);
+          ret('seal_heater', 0.18/S);
+          sealCount++;
+          document.getElementById('cSeals').textContent = sealCount;
+          addLog(`  SEAL #${sealCount} เสร็จ ✓`,'info');
+          setTimeout(end, 250/S);
+        }, 600/S);
       });
       break;
 
-    // Step 7 — VISION: pulse seal_holder (สีฟ้า) จำลอง camera focus
+    // ── 7. VISION: seal_holder pulse สีฟ้า 2 รอบ ──
     case 'VISION':
       hl('seal_holder', blueMat);
-      tw('seal_holder', new THREE.Vector3(0,0.012,0), 0.15, ()=>{
-        ret('seal_holder',0.15);
+      tw('seal_holder', new THREE.Vector3(0,0.012,0), 0.15/S, ()=>{
+        ret('seal_holder', 0.15/S);
         setTimeout(()=>{
-          tw('seal_holder', new THREE.Vector3(0,0.012,0), 0.15, ()=>{
-            ret('seal_holder',0.15);
+          tw('seal_holder', new THREE.Vector3(0,0.012,0), 0.15/S, ()=>{
+            ret('seal_holder', 0.15/S);
             addLog('  VISION: Seal OK ✓','info');
-            setTimeout(done,200);
+            setTimeout(end, 200/S);
           });
-        },200);
+        }, 180/S);
       });
       break;
 
-    // Step 8 — ROLL_COLLECT: Roller เก็บงาน (ซ้าย สีม่วง) หมุน 1 รอบ CCW (ตามลูกศรแดง)
+    // ── 8. ROLL_COLLECT: roller_collect หมุน 1 รอบรอบตัวเอง (สีม่วง) ──
     case 'ROLL_COLLECT':
-      hl('roller_collect', moveMat);
-      twRot('roller_collect', Math.PI*2, 0.55, 'x', ()=>{
-        addLog('  Roller Collect หมุน 1 รอบ ✓','info');
-        setTimeout(done, 200);
+      spinRoller('roller_collect', moveMat, 1, 0.50/S, ()=>{
+        restoreOne('roller_collect');
+        rollCount++;
+        document.getElementById('cRoll').textContent = rollCount;
+        addLog(`  Roll Collect #${rollCount} ✓`,'info');
+        setTimeout(end, 150/S);
       });
       break;
 
-    // Step 9 — ADVANCE: Carrier เลื่อนไปหน้า +24.5mm (ลูกศรสีฟ้าชี้ซ้าย)
-    // scale model: 24.5mm ≈ 0.10 units (ปรับตาม scale จริงของ GLB)
-    case 'ADVANCE':
-      hl('carrier_tape', hlMat);
-      hl('roller_feed',  feedMat);
-      // roller_feed หมุนพร้อมกันขณะ carrier เลื่อน
-      twRot('roller_feed', -Math.PI*0.8, 0.30, 'x');
-      tw('carrier_tape', new THREE.Vector3(-0.098,0,0), 0.30, ()=>{
-        // reset carrier_tape position (มันวนซ้ำได้)
-        setTimeout(()=>{
-          ret('carrier_tape',0.15);
-          advances++;
-          carrierMM += 24.5;
-          document.getElementById('cAdv').textContent=advances;
-          document.getElementById('distVal').textContent=carrierMM.toFixed(1);
-          addLog(`  Carrier เลื่อน +24.5mm (รวม ${carrierMM.toFixed(1)} mm) ✓`,'info');
-          setTimeout(done, 200);
-        }, 150);
-      });
-      break;
-
-    // Step 10 — RESET
+    // ── 9. RESET ──
     case 'RESET':
-      tweens.length=0;
+      tweens.length = 0;
       restoreAll();
       resetPositions();
-      carrierMM=0;
+      carrierMM = 0;
       cycles++;
-      document.getElementById('cCycles').textContent=cycles;
-      document.getElementById('distVal').textContent='0.0';
-      addLog(`↺ Reset — Cycle #${cycles} เสร็จ`,'warn');
-      setTimeout(done, 300);
+      document.getElementById('cCycles').textContent  = cycles;
+      document.getElementById('cFeed').textContent    = feedCount;
+      document.getElementById('cSeals').textContent   = sealCount;
+      document.getElementById('cRoll').textContent    = rollCount;
+      document.getElementById('distVal').textContent  = '0.0';
+      document.getElementById('hdot').className       = 'hdot';
+      document.getElementById('hstatus').textContent  = 'Idle — กด START ก่อน';
+      setOverlay('READY', 'กด ▶ START เพื่อเริ่มต้น');
+      addLog(`↺ Reset — Cycle #${cycles} เสร็จ`, 'warn');
+      setTimeout(end, 200);
       break;
 
     default:
-      done();
+      end();
   }
 }
 
-renderStepUI(); // initial render (before GLB)
-addLog('BK05 Manual Mode — รอกด Step 1 ▶ Start','info');
+// ── Init UI ──
+buildUI();
+addLog('BK05 Manual Mode — กด ▶ START ก่อนเพื่อ unlock ปุ่มอื่น', 'info');
 </script>
 </body>
 </html>
