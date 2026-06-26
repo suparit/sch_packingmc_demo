@@ -164,8 +164,8 @@ const STEPS = [
     anim: async (ctx) => {
       ctx.hl('roller_feed',  ctx.hlMat);
       ctx.hl('carrier_tape', ctx.moveMat);
-      // roller หมุนรอบแกน Z (เหมือนล้อตั้งตรง) + carrier เลื่อน +Y พร้อมกัน
-      ctx.twRot('roller_feed', -Math.PI*2, 0.35, 'z');
+      // roller หมุนรอบจุดกลางตัวเอง (pivot) + carrier เลื่อน +Y พร้อมกัน
+      ctx.twRotPivot('roller_feed', -Math.PI*2, 0.35, 'z');
       await ctx.tw('carrier_tape', new THREE.Vector3(0,CARRIER_PITCH,0), 0.35);
       ctx.log(`FEED: carrier +24.5mm (step ${(window._moves=(window._moves||0)+1)})`,'info');
     }
@@ -232,8 +232,8 @@ const STEPS = [
     desc:'roller_collect (ซ้าย สีม่วง) หมุนรอบแกน X 1 รอบ เก็บงาน',
     anim: async (ctx) => {
       ctx.hl('roller_collect', ctx.hlMat);
-      // หมุนรอบแกน Z (เหมือนล้อตั้งตรง)
-      await ctx.twRot('roller_collect', -Math.PI*2, 0.4, 'z');
+      // หมุนรอบจุดกลางตัวเอง (pivot) แกน Z
+      await ctx.twRotPivot('roller_collect', -Math.PI*2, 0.4, 'z');
       ctx.log('Roller Collect ↻ 1 rev (X-axis)','info');
       window._packed = (window._packed||0)+1;
       document.getElementById('cPacked').textContent = window._packed;
@@ -313,10 +313,50 @@ function ret(role,durSec=0.2){
       dur:durSec,elapsed:0,onDone:resolve});
   });
 }
+// ── Pivot rotation — หมุนรอบจุดกลาง mesh จริง ไม่ใช่ origin ──
+// ใช้ parent object เป็น pivot เพื่อแก้ปัญหา origin ไม่ตรงกลาง
+const pivotMap = {}; // role → pivot Group
+
+function setupPivot(role) {
+  const mesh = meshMap[role];
+  if (!mesh || pivotMap[role]) return;
+  // หาจุดกลาง mesh จริงใน world space
+  const box = new THREE.Box3().setFromObject(mesh);
+  const center = box.getCenter(new THREE.Vector3());
+  // สร้าง pivot group ที่กลาง mesh
+  const pivot = new THREE.Group();
+  pivot.position.copy(center);
+  // ย้าย mesh เข้า pivot โดยให้ mesh offset จาก center
+  const parent = mesh.parent;
+  parent.add(pivot);
+  pivot.add(mesh);
+  // ปรับ mesh position ให้ relative กับ pivot
+  mesh.position.sub(center);
+  pivotMap[role] = pivot;
+}
+
+function twRotPivot(role, deltaRot, durSec, axis='z') {
+  return new Promise(resolve => {
+    const mesh = meshMap[role];
+    if (!mesh) { resolve(); return; }
+    // setup pivot ครั้งแรก
+    setupPivot(role);
+    const pivot = pivotMap[role];
+    const key = role + '_r';
+    const i = tweens.findIndex(t => t.role === key);
+    if (i > -1) tweens.splice(i, 1);
+    tweens.push({
+      role: key, mesh: pivot,
+      fromRot: pivot.rotation[axis],
+      toRot: pivot.rotation[axis] + deltaRot,
+      isRot: true, rotAxis: axis,
+      dur: durSec, elapsed: 0, onDone: resolve
+    });
+  });
+}
+
 function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
 function ease(t){return t<0.5?2*t*t:-1+(4-2*t)*t;}
-
-// ── Materials ──
 const hlMat   = new THREE.MeshStandardMaterial({color:0x00c9a7,emissive:0x003322,roughness:0.3});
 const alMat   = new THREE.MeshStandardMaterial({color:0xf87171,emissive:0x330000,roughness:0.3});
 const warmMat = new THREE.MeshStandardMaterial({color:0xff7700,emissive:0x331100,roughness:0.3});
@@ -326,11 +366,18 @@ function hl(role,mat){const m=meshMap[role];if(m)m.material=mat;}
 function restoreAll(){Object.keys(meshMap).forEach(r=>{const m=meshMap[r];if(m&&origMat[r])m.material=Array.isArray(origMat[r])?origMat[r].map(x=>x.clone()):origMat[r].clone();});}
 function resetAllPos(){
   tweens.length=0;
-  Object.keys(meshMap).forEach(r=>{const m=meshMap[r];if(m&&origPos[r]){m.position.copy(origPos[r]);m.rotation.set(0,0,0);}});
+  Object.keys(meshMap).forEach(r=>{
+    const m=meshMap[r];
+    if(m&&origPos[r]){m.position.copy(origPos[r]);m.rotation.set(0,0,0);}
+  });
+  // reset pivots
+  Object.keys(pivotMap).forEach(r=>{
+    const p=pivotMap[r]; if(p) p.rotation.set(0,0,0);
+  });
 }
 
 // ctx object passed to each step anim
-const ctx = {hl,hlMat,alMat,warmMat,moveMat,tw,twRot,ret,wait,restoreAll,resetAllPos,
+const ctx = {hl,hlMat,alMat,warmMat,moveMat,tw,twRot,twRotPivot,ret,wait,restoreAll,resetAllPos,
   log:(msg,type)=>addLog(msg,type)};
 
 // ── Render loop ──
