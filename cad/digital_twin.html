@@ -165,7 +165,7 @@ const STEPS = [
       ctx.hl('roller_feed',  ctx.hlMat);
       ctx.hl('carrier_tape', ctx.moveMat);
       // roller หมุนรอบจุดกลางตัวเอง (pivot) + carrier เลื่อน +Y พร้อมกัน
-      ctx.twRotPivot('roller_feed', Math.PI*2, 0.35, 'z');
+      ctx.twRotSelf('roller_feed', Math.PI*2, 0.35);
       await ctx.tw('carrier_tape', new THREE.Vector3(0,CARRIER_PITCH,0), 0.35);
       ctx.log(`FEED: carrier +24.5mm (step ${(window._moves=(window._moves||0)+1)})`,'info');
     }
@@ -233,7 +233,7 @@ const STEPS = [
     anim: async (ctx) => {
       ctx.hl('roller_collect', ctx.hlMat);
       // หมุนรอบจุดกลางตัวเอง (pivot) แกน Z
-      await ctx.twRotPivot('roller_collect', Math.PI*2, 0.4, 'z');
+      await ctx.twRotSelf('roller_collect', Math.PI*2, 0.4);
       ctx.log('Roller Collect ↻ 1 rev (X-axis)','info');
       window._packed = (window._packed||0)+1;
       document.getElementById('cPacked').textContent = window._packed;
@@ -320,38 +320,48 @@ const pivotMap = {}; // role → pivot Group
 function setupPivot(role) {
   const mesh = meshMap[role];
   if (!mesh || pivotMap[role]) return;
-  // หาจุดกลาง mesh จริงใน world space
-  const box = new THREE.Box3().setFromObject(mesh);
-  const center = box.getCenter(new THREE.Vector3());
-  // สร้าง pivot group ที่กลาง mesh
+
+  // ใช้ geometry bounding box เพื่อหาจุดกลางใน local space ของ mesh เอง
+  const geo = mesh.geometry;
+  if (!geo.boundingBox) geo.computeBoundingBox();
+  const localCenter = new THREE.Vector3();
+  geo.boundingBox.getCenter(localCenter);
+
+  // แปลง local center → world space
+  const worldCenter = localCenter.clone().applyMatrix4(mesh.matrixWorld);
+
+  // สร้าง pivot group ที่ world center
   const pivot = new THREE.Group();
-  pivot.position.copy(center);
-  // ย้าย mesh เข้า pivot โดยให้ mesh offset จาก center
+  pivot.position.copy(worldCenter);
+
+  // ย้าย mesh เข้า pivot
   const parent = mesh.parent;
   parent.add(pivot);
   pivot.add(mesh);
-  // ปรับ mesh position ให้ relative กับ pivot
-  mesh.position.sub(center);
+
+  // offset mesh position ให้สัมพันธ์กับ pivot
+  const localOffset = mesh.position.clone().sub(worldCenter);
+  // แก้ด้วย world matrix ของ parent เดิม
+  mesh.position.copy(worldCenter.clone().negate());
+
   pivotMap[role] = pivot;
 }
 
-function twRotPivot(role, deltaRot, durSec, axis='z') {
+// ── Rotate mesh on its own world Y axis (no pivot needed) ──
+function twRotSelf(role, totalRad, durSec) {
   return new Promise(resolve => {
     const mesh = meshMap[role];
     if (!mesh) { resolve(); return; }
-    // setup pivot ครั้งแรก
-    setupPivot(role);
-    const pivot = pivotMap[role];
-    const key = role + '_r';
+    const key = role + '_rs';
     const i = tweens.findIndex(t => t.role === key);
     if (i > -1) tweens.splice(i, 1);
+    let rotated = 0;
     tweens.push({
-      role: key, mesh: pivot,
-      fromRot: pivot.rotation[axis],
-      toRot: pivot.rotation[axis] + deltaRot,
-      isRot: true, rotAxis: axis,
+      role: key, mesh,
+      isSelfRot: true, totalRad, rotated,
       dur: durSec, elapsed: 0, onDone: resolve
     });
+    document.getElementById('animTag') && (document.getElementById('animTag').style.display='block');
   });
 }
 
@@ -377,7 +387,7 @@ function resetAllPos(){
 }
 
 // ctx object passed to each step anim
-const ctx = {hl,hlMat,alMat,warmMat,moveMat,tw,twRot,twRotPivot,ret,wait,restoreAll,resetAllPos,
+const ctx = {hl,hlMat,alMat,warmMat,moveMat,tw,twRot,twRotPivot,twRotSelf,ret,wait,restoreAll,resetAllPos,
   log:(msg,type)=>addLog(msg,type)};
 
 // ── Render loop ──
@@ -389,8 +399,17 @@ function animate(){
   for(let i=tweens.length-1;i>=0;i--){
     const t=tweens[i]; t.elapsed+=dt;
     const p=Math.min(t.elapsed/t.dur,1),ep=ease(p);
-    if(t.isRot) t.mesh.rotation[t.rotAxis||'x']=t.fromRot+(t.toRot-t.fromRot)*ep;
-    else t.mesh.position.lerpVectors(t.from,t.to,ep);
+    if(t.isSelfRot){
+      // หมุนรอบแกน Y ของตัวเอง (world axis)
+      const target = t.totalRad * ep;
+      const delta = target - (t.rotated||0);
+      t.mesh.rotateOnWorldAxis(new THREE.Vector3(0,1,0), delta);
+      t.rotated = target;
+    } else if(t.isRot){
+      t.mesh.rotation[t.rotAxis||'y']=t.fromRot+(t.toRot-t.fromRot)*ep;
+    } else {
+      t.mesh.position.lerpVectors(t.from,t.to,ep);
+    }
     if(p>=1){if(t.onDone)t.onDone();tweens.splice(i,1);}
   }
   renderer.render(scene,camera);
