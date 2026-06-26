@@ -165,7 +165,7 @@ const STEPS = [
       ctx.hl('roller_feed',  ctx.hlMat);
       ctx.hl('carrier_tape', ctx.moveMat);
       // roller หมุนรอบจุดกลางตัวเอง (pivot) + carrier เลื่อน +Y พร้อมกัน
-      ctx.twRotPivot('roller_feed', -Math.PI*2, 0.35, 'z');
+      ctx.twRotPivot('roller_feed', Math.PI*2, 0.35, 'z');
       await ctx.tw('carrier_tape', new THREE.Vector3(0,CARRIER_PITCH,0), 0.35);
       ctx.log(`FEED: carrier +24.5mm (step ${(window._moves=(window._moves||0)+1)})`,'info');
     }
@@ -233,7 +233,7 @@ const STEPS = [
     anim: async (ctx) => {
       ctx.hl('roller_collect', ctx.hlMat);
       // หมุนรอบจุดกลางตัวเอง (pivot) แกน Z
-      await ctx.twRotPivot('roller_collect', -Math.PI*2, 0.4, 'z');
+      await ctx.twRotPivot('roller_collect', Math.PI*2, 0.4, 'z');
       ctx.log('Roller Collect ↻ 1 rev (X-axis)','info');
       window._packed = (window._packed||0)+1;
       document.getElementById('cPacked').textContent = window._packed;
