@@ -144,31 +144,35 @@ const PART_NAMES = {
 };
 
 // ── Step definitions ──
-// carrier pitch = 24.5mm → ใช้ scale ≈ 0.0245 unit (ปรับได้ถ้าต้องการ)
-const CARRIER_PITCH = 0.08; // unit ใน 3D (ปรับให้เห็นชัด)
+const CARRIER_PITCH = 0.08; // 1 pitch = 24.5mm (ปรับได้)
 
 const STEPS = [
   {
     id:'start', name:'START / INIT', icon:'▶',
-    desc:'เริ่มต้นระบบ — กด Cylinder2 ดันขึ้น +Y ให้ carrier ติดลูกกลิ้ง',
+    desc:'เริ่มระบบ — cylinder2 ดันขึ้น +Y ให้ Push-leg Carrier ดัน carrier ติด Pinch Roller',
     anim: async (ctx) => {
       ctx.hl('cylinder2', ctx.moveMat);
       await ctx.tw('cylinder2', new THREE.Vector3(0,0.08,0), 0.2);
-      ctx.log('Cylinder2 ↑ pushed up','info');
+      ctx.log('Cylinder2 ↑ ดัน Push-leg Carrier → carrier ติด Pinch Roller','info');
     }
   },
   {
-    id:'roller_feed', name:'ROLLER FEED', icon:'🟢',
-    desc:'Roller จ่าย Carrier (ขวา สีเขียว) หมุน 1 รอบ',
+    // repeatable — กดได้ทุกครั้ง
+    id:'feed_carrier', name:'FEED CARRIER', icon:'➡',
+    desc:'roller_feed หมุน + carrier เลื่อนไปข้างหน้า -Y พร้อมกัน ทีละ 24.5mm',
+    repeatable: true,
     anim: async (ctx) => {
-      ctx.hl('roller_feed', ctx.hlMat);
-      await ctx.twRot('roller_feed', -Math.PI*2, 0.4, 'x');
-      ctx.log('Roller Feed ↻ 1 revolution','info');
+      ctx.hl('roller_feed',  ctx.hlMat);
+      ctx.hl('carrier_tape', ctx.moveMat);
+      // roller หมุนรอบแกน X + carrier เลื่อน -Y พร้อมกัน
+      ctx.twRot('roller_feed', -Math.PI*2, 0.35, 'x');
+      await ctx.tw('carrier_tape', new THREE.Vector3(0,-CARRIER_PITCH,0), 0.35);
+      ctx.log(`FEED: carrier +24.5mm (step ${(window._moves=(window._moves||0)+1)})`,'info');
     }
   },
   {
     id:'index', name:'INDEX', icon:'📍',
-    desc:'ตรวจสอบว่ามี Carrier — ยืนยัน carrier อยู่ในร่อง',
+    desc:'ตรวจสอบว่ามี Carrier อยู่ในร่อง Guide Rail',
     anim: async (ctx) => {
       ctx.hl('carrier_tape', ctx.hlMat);
       ctx.log('INDEX: Carrier present ✓','info');
@@ -176,7 +180,7 @@ const STEPS = [
   },
   {
     id:'check_index', name:'CHECK_INDEX', icon:'✅',
-    desc:'ตรวจสอบว่ามีชิ้นงานไหม — ยืนยัน position OK',
+    desc:'ตรวจสอบ position — carrier อยู่ตำแหน่งที่ถูกต้อง',
     anim: async (ctx) => {
       ctx.hl('carrier_tape', ctx.hlMat);
       ctx.log('CHECK_INDEX: Position OK ✓','info');
@@ -184,30 +188,34 @@ const STEPS = [
   },
   {
     id:'load_part', name:'LOAD_PART', icon:'📦',
-    desc:'ยืนยันว่ามีชิ้นงานวางแล้ว',
+    desc:'ยืนยันว่ามีชิ้นงานวางลงใน carrier แล้ว',
     anim: async (ctx) => {
-      ctx.hl('support_seal', ctx.moveMat);
+      ctx.hl('carrier_tape', ctx.hlMat);
       ctx.log('LOAD_PART: Component placed ✓','info');
     }
   },
   {
     id:'seal', name:'SEAL', icon:'🔥',
-    desc:'seal_head + cylinder1 + support_seal กดลง -Y พร้อมกัน → hold → ยกขึ้น',
+    desc:'cylinder1 ดึง support_seal + seal_head กดลง -Y พร้อมกัน / Spring รับแรงกระแทก → hold → ยกขึ้น',
     anim: async (ctx) => {
       ctx.hl('seal_head',    ctx.warmMat);
       ctx.hl('cylinder1',    ctx.warmMat);
       ctx.hl('support_seal', ctx.warmMat);
-      // กดลงพร้อมกันทั้ง 3 ชิ้น
+      ctx.hl('spring',       ctx.moveMat);
+      // กดลงพร้อมกันทั้ง 3 ชิ้น เร็ว 0.15s
       ctx.tw('seal_head',    new THREE.Vector3(0,-0.13,0), 0.15);
       ctx.tw('cylinder1',    new THREE.Vector3(0,-0.10,0), 0.15);
       await ctx.tw('support_seal', new THREE.Vector3(0,-0.13,0), 0.15);
+      // Spring กดอัดลง -Y รับแรงกระแทก (กดน้อยกว่า seal)
+      await ctx.tw('spring', new THREE.Vector3(0,-0.04,0), 0.10);
       // hold 500ms
       await ctx.wait(500);
-      // ยกขึ้นพร้อมกัน
+      // ยกขึ้นพร้อมกัน — spring คืนตัวก่อน
+      ctx.ret('spring',       0.12);
       ctx.ret('seal_head',    0.15);
       ctx.ret('cylinder1',    0.15);
       await ctx.ret('support_seal', 0.15);
-      ctx.log('SEAL: Heat + Pressure ✓','info');
+      ctx.log('SEAL: Heat + Pressure ✓ / Spring absorbed impact','info');
     }
   },
   {
@@ -221,29 +229,14 @@ const STEPS = [
   },
   {
     id:'roll', name:'ROLL (เก็บงาน)', icon:'🟣',
-    desc:'Roller เก็บงาน (ซ้าย สีม่วง) หมุน 1 รอบ',
+    desc:'roller_collect (ซ้าย สีม่วง) หมุนรอบแกน X 1 รอบ เก็บงาน',
     anim: async (ctx) => {
       ctx.hl('roller_collect', ctx.hlMat);
+      // หมุนรอบแกน X (spindle shaft วางแกน X)
       await ctx.twRot('roller_collect', -Math.PI*2, 0.4, 'x');
-      ctx.log('Roller Collect ↻ 1 revolution','info');
-      // นับ packed
+      ctx.log('Roller Collect ↻ 1 rev (X-axis)','info');
       window._packed = (window._packed||0)+1;
       document.getElementById('cPacked').textContent = window._packed;
-    }
-  },
-  {
-    id:'carrier_move', name:'CARRIER +24.5mm', icon:'➡',
-    desc:'ขยับ Carrier ไปข้างหน้า 24.5mm ทีละช่อง — กดได้หลายครั้ง',
-    repeatable: true,
-    anim: async (ctx) => {
-      ctx.hl('carrier_tape', ctx.moveMat);
-      // cylinder2 ลงก่อน (release)
-      await ctx.ret('cylinder2', 0.12);
-      // carrier เลื่อน -X (ตามทิศลูกศรสีฟ้า) 1 pitch
-      await ctx.tw('carrier_tape', new THREE.Vector3(-CARRIER_PITCH,0,0), 0.25);
-      // cylinder2 ดันขึ้นใหม่
-      await ctx.tw('cylinder2', new THREE.Vector3(0,0.08,0), 0.15);
-      ctx.log(`CARRIER: moved 24.5mm ✓ (total ${(window._moves=(window._moves||0)+1)} steps)`,'info');
     }
   },
   {
@@ -443,14 +436,12 @@ async function runStep(idx){
       nextBtn.disabled = false;
       // also keep repeatable step enabled
     }
-    // always keep carrier_move and reset enabled after unlock
-    const carrBtn = document.getElementById('sbtn_carrier_move');
+    // FEED CARRIER และ RESET ให้กดได้ตลอดหลัง START
+    const feedBtn = document.getElementById('sbtn_feed_carrier');
     const rstBtn  = document.getElementById('sbtn_reset');
-    if(currentStep >= 1) { // after roller_feed at least
-      if(carrBtn) carrBtn.disabled = false;
-    }
     if(currentStep >= 0) {
-      if(rstBtn) rstBtn.disabled = false;
+      if(feedBtn) feedBtn.disabled = false;
+      if(rstBtn)  rstBtn.disabled  = false;
     }
   }
 
