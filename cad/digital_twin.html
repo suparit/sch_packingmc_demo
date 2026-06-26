@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>BK05 — Digital Twin (Manual)</title>
+  <title>BK05 — Digital Twin Manual</title>
   <script type="importmap">
     {"imports":{
       "three":"https://unpkg.com/three@0.158.0/build/three.module.js",
@@ -13,97 +13,75 @@
     *{box-sizing:border-box;margin:0;padding:0}
     :root{
       --bg:#0a0c0f;--surface:#111318;--surface2:#1a1d24;--border:#2a2d38;
-      --text:#e8eaf0;--muted:#6b7080;--teal:#00c9a7;--red:#f87171;--amber:#fbbf24;--purple:#a78bfa;--green:#4ade80;
+      --text:#e8eaf0;--muted:#6b7080;--teal:#00c9a7;--red:#f87171;--amber:#fbbf24;--purple:#a78bfa;
     }
     body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
-      display:grid;grid-template-columns:1fr 290px;grid-template-rows:48px 1fr;height:100vh;overflow:hidden}
+      display:grid;grid-template-columns:1fr 300px;grid-template-rows:48px 1fr;height:100vh;overflow:hidden}
     header{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:0 16px;
       background:var(--surface);border-bottom:1px solid var(--border)}
     .logo{font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--teal)}
     .htitle{font-size:12px;color:var(--muted)}
-    .badge{font-size:10px;padding:2px 8px;border-radius:20px;border:1px solid var(--amber);color:var(--amber);background:rgba(251,191,36,.1)}
     .hdot{width:8px;height:8px;border-radius:50%;background:#4b5563;margin-left:auto;transition:background .3s}
     .hdot.run{background:var(--teal);box-shadow:0 0 6px var(--teal)}
+    .hdot.alarm{background:var(--red);box-shadow:0 0 6px var(--red)}
     #hstatus{font-size:12px;color:var(--muted);margin-left:6px}
 
     #canvas-wrap{position:relative;background:#06080a}
     canvas{display:block;width:100%;height:100%}
-
-    /* overlay top-left */
-    .overlay{position:absolute;top:12px;left:12px;background:rgba(10,12,15,.9);
-      border:1px solid var(--border);border-radius:10px;padding:10px 14px;min-width:170px;pointer-events:none}
+    .overlay{position:absolute;top:12px;left:12px;background:rgba(10,12,15,.88);
+      border:1px solid var(--border);border-radius:10px;padding:10px 14px;min-width:160px}
     .ov-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
-    .ov-state{font-size:20px;font-weight:700;color:var(--teal);line-height:1.1}
+    .ov-state{font-size:20px;font-weight:700;color:var(--teal);line-height:1.1;transition:color .3s}
+    .ov-state.alarm{color:var(--red)}
     .ov-desc{font-size:11px;color:var(--muted);margin-top:3px}
 
-    /* anim tag */
-    .anim-tag{position:absolute;bottom:12px;left:12px;background:rgba(251,191,36,.15);
-      border:1px solid var(--amber);border-radius:7px;padding:5px 12px;font-size:11px;
-      color:var(--amber);display:none;pointer-events:none}
+    /* step counter badge */
+    .step-badge{position:absolute;top:12px;right:12px;background:rgba(0,201,167,.15);
+      border:1px solid var(--teal);border-radius:8px;padding:6px 14px;font-size:12px;color:var(--teal)}
 
-    /* carrier distance bottom-right */
-    .dist-bar{position:absolute;bottom:12px;right:12px;background:rgba(10,12,15,.88);
-      border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:11px;color:var(--muted)}
-    .dist-val{font-size:16px;font-weight:700;color:var(--amber)}
+    .panel{background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
 
-    /* ── Panel ── */
-    .panel{background:var(--surface);border-left:1px solid var(--border);
-      display:flex;flex-direction:column;overflow:hidden}
-
-    /* speed row */
-    .speed-row{padding:10px 12px;border-bottom:1px solid var(--border);
-      display:flex;align-items:center;gap:8px;flex-shrink:0}
-    .slbl{font-size:11px;color:var(--muted);white-space:nowrap}
-    input[type=range]{flex:1;accent-color:var(--teal)}
-    .sval{font-size:11px;color:var(--teal);min-width:24px;text-align:right}
-
-    /* counters */
-    .counters{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
-    .cnt{flex:1;padding:8px 4px;text-align:center;border-right:1px solid var(--border)}
-    .cnt:last-child{border-right:none}
-    .cnt-val{font-size:16px;font-weight:700;color:var(--teal)}
-    .cnt-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-top:1px}
-
-    /* step list */
-    .steps-wrap{flex:1;overflow-y:auto;padding:8px 6px;
+    /* Step buttons */
+    .steps-wrap{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:6px;
       scrollbar-width:thin;scrollbar-color:var(--border) transparent}
 
-    .step-card{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:8px;
-      border:1px solid var(--border);background:var(--surface2);margin-bottom:4px;transition:border-color .2s}
-    .step-card.unlocked{border-color:rgba(0,201,167,.3)}
-    .step-card.locked{opacity:.45}
-    .step-card.start-card{border-color:var(--amber)}
-
-    .step-num{width:19px;height:19px;border-radius:50%;display:flex;align-items:center;
-      justify-content:center;font-size:9px;font-weight:700;flex-shrink:0;
-      background:var(--border);color:var(--muted)}
-    .step-card.unlocked .step-num{background:var(--teal);color:#000}
-    .step-card.start-card .step-num{background:var(--amber);color:#000}
-
-    .step-info{flex:1;min-width:0}
-    .step-name{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
-    .step-card.unlocked .step-name{color:var(--teal)}
-    .step-card.start-card .step-name{color:var(--amber)}
-    .step-desc{font-size:9px;color:var(--muted);margin-top:1px;
-      white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-
-    .step-btn{font-size:10px;font-weight:600;padding:5px 9px;border-radius:6px;cursor:pointer;
-      border:1px solid var(--border);background:var(--surface);color:var(--muted);
-      white-space:nowrap;transition:all .15s;flex-shrink:0}
-    .step-btn.go{border-color:var(--teal);color:var(--teal);background:rgba(0,201,167,.1)}
-    .step-btn.go:hover{background:rgba(0,201,167,.2)}
-    .step-btn.go-start{border-color:var(--amber);color:var(--amber);background:rgba(251,191,36,.1)}
-    .step-btn.go-start:hover{background:rgba(251,191,36,.2)}
-    .step-btn.go-reset{border-color:var(--red);color:var(--red);background:rgba(248,113,113,.1)}
-    .step-btn.go-reset:hover{background:rgba(248,113,113,.2)}
+    .step-btn{
+      display:flex;align-items:center;gap:10px;
+      padding:10px 12px;border-radius:9px;border:1px solid var(--border);
+      background:var(--surface2);cursor:pointer;transition:all .2s;text-align:left;width:100%;
+    }
+    .step-btn:hover:not(:disabled){border-color:var(--teal);background:rgba(0,201,167,.08)}
     .step-btn:disabled{opacity:.3;cursor:not-allowed}
+    .step-btn.active{border-color:var(--teal);background:rgba(0,201,167,.12)}
+    .step-btn.done{border-color:var(--purple);background:rgba(167,139,250,.08)}
+    .step-btn.danger{border-color:var(--red)!important;background:rgba(248,113,113,.1)!important}
+
+    .step-num{width:24px;height:24px;border-radius:50%;background:var(--border);
+      color:var(--muted);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .step-btn.active .step-num{background:var(--teal);color:#000}
+    .step-btn.done   .step-num{background:var(--purple);color:#fff}
+    .step-btn.danger .step-num{background:var(--red);color:#fff}
+
+    .step-info{flex:1}
+    .step-name{font-size:12px;font-weight:600;color:var(--muted);transition:color .2s}
+    .step-btn.active .step-name{color:var(--teal)}
+    .step-btn.done   .step-name{color:var(--text)}
+    .step-btn.danger .step-name{color:var(--red)}
+    .step-desc{font-size:10px;color:var(--muted);margin-top:2px}
+
+    .step-icon{font-size:16px;flex-shrink:0}
+
+    /* counters */
+    .counters{display:flex;border-top:1px solid var(--border);flex-shrink:0}
+    .cnt{flex:1;padding:8px;text-align:center;border-right:1px solid var(--border)}
+    .cnt:last-child{border-right:none}
+    .cnt-val{font-size:16px;font-weight:700;color:var(--teal)}
+    .cnt-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-top:1px}
 
     /* log */
-    .log-wrap{border-top:1px solid var(--border);height:120px;display:flex;flex-direction:column;flex-shrink:0}
-    .log-hdr{padding:5px 12px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
-    .log-title{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-    .log-clr{font-size:10px;color:var(--muted);cursor:pointer}
-    .log-clr:hover{color:var(--text)}
+    .log-wrap{border-top:1px solid var(--border);height:130px;display:flex;flex-direction:column;flex-shrink:0}
+    .log-hdr{padding:5px 12px;display:flex;justify-content:space-between;align-items:center}
+    .log-clr{font-size:10px;color:var(--muted);cursor:pointer}.log-clr:hover{color:var(--text)}
     .log-body{flex:1;overflow-y:auto;padding:0 12px 6px;font-family:monospace;font-size:10px;
       line-height:1.7;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
     .le .ts{color:#4b5563;margin-right:5px}
@@ -111,51 +89,37 @@
   </style>
 </head>
 <body>
-
 <header>
   <span class="logo">BK05</span>
   <span style="color:var(--border)">|</span>
-  <span class="htitle">SMD Reel Packing — Digital Twin</span>
-  <span class="badge">MANUAL</span>
+  <span class="htitle">Digital Twin — Manual Mode</span>
   <div class="hdot" id="hdot"></div>
-  <span id="hstatus">Idle — กด START ก่อน</span>
+  <span id="hstatus">Idle</span>
 </header>
 
 <div id="canvas-wrap">
   <canvas id="c"></canvas>
   <div class="overlay">
-    <div class="ov-label">Current Action</div>
+    <div class="ov-label">Current State</div>
     <div class="ov-state" id="ovState">READY</div>
-    <div class="ov-desc" id="ovDesc">กด ▶ START เพื่อเริ่มต้น</div>
+    <div class="ov-desc" id="ovDesc">Press START to begin</div>
   </div>
-  <div class="anim-tag" id="animTag">⟳ Animating</div>
-  <div class="dist-bar">Carrier: <span class="dist-val" id="distVal">0.0</span> mm</div>
+  <div class="step-badge" id="stepBadge">Step —</div>
 </div>
 
 <div class="panel">
-  <!-- Speed -->
-  <div class="speed-row">
-    <span class="slbl">Speed</span>
-    <input type="range" id="spd" min="0.5" max="4" step="0.5" value="1"
-      oninput="speedMul=+this.value;document.getElementById('sval').textContent=this.value+'×'">
-    <span class="sval" id="sval">1×</span>
+  <div class="steps-wrap" id="stepsWrap">
+    <!-- steps injected by JS -->
   </div>
 
-  <!-- Counters -->
   <div class="counters">
+    <div class="cnt"><div class="cnt-val" id="cPacked">0</div><div class="cnt-lbl">Packed</div></div>
     <div class="cnt"><div class="cnt-val" id="cCycles">0</div><div class="cnt-lbl">Cycles</div></div>
-    <div class="cnt"><div class="cnt-val" id="cFeed">0</div><div class="cnt-lbl">Feed</div></div>
-    <div class="cnt"><div class="cnt-val" id="cSeals">0</div><div class="cnt-lbl">Seals</div></div>
-    <div class="cnt"><div class="cnt-val" id="cRoll">0</div><div class="cnt-lbl">Roll</div></div>
   </div>
 
-  <!-- Step Cards -->
-  <div class="steps-wrap" id="stepsList"></div>
-
-  <!-- Log -->
   <div class="log-wrap">
     <div class="log-hdr">
-      <span class="log-title">Event Log</span>
+      <span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Event Log</span>
       <span class="log-clr" onclick="document.getElementById('logBody').innerHTML=''">Clear</span>
     </div>
     <div class="log-body" id="logBody"></div>
@@ -167,431 +131,343 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-// ── Part map ──
+// ── Part map (ชื่อจาก Blender ใหม่) ──
 const PART_NAMES = {
-  roller_collect: 'Assembly_Daymo-2_14',
-  roller_feed:    'Assembly_Daymo-2_20',
-  carrier_tape:   'Assembly_Daymo-2_11',
-  cylinder2:      'Assembly_Daymo-2_23',
-  seal_head:      'Assembly_Daymo-2_12',
-  cylinder1:      'Assembly_Daymo-2_13',
-  seal_heater:    'Assembly_Daymo-2_7',
-  seal_holder:    'Assembly_Daymo-2_8',
-  spring:         'Assembly_Daymo-2_18',
+  roller_collect: 'roller_collect',   // ซ้าย สีม่วง — เก็บงาน
+  roller_feed:    'roller_feed',      // ขวา สีเขียว — จ่าย carrier
+  carrier_tape:   'carrier_tape',     // carrier tape แถบยาว
+  cylinder2:      'cylinder2',        // ดัน carrier ขึ้น +Y
+  seal_head:      'seal_head',        // seal head
+  cylinder1:      'cylinder1',        // กดลง -Y (seal)
+  support_seal:   'support_seal',     // ชุด stamp หลัก กดพร้อม seal_head
+  spring:         'Spring',           // spring (ตัว S ใหญ่ตาม Blender)
 };
 
-// ── Step Definitions ──
-// type: 'start' | 'free' | 'reset'
+// ── Step definitions ──
+// carrier pitch = 24.5mm → ใช้ scale ≈ 0.0245 unit (ปรับได้ถ้าต้องการ)
+const CARRIER_PITCH = 0.08; // unit ใน 3D (ปรับให้เห็นชัด)
+
 const STEPS = [
-  { id:'START',        name:'START',        desc:'Cylinder2 ดันขึ้น +Y ล็อก Carrier',      btn:'▶ Start',          type:'start'  },
-  { id:'FEED_CARRIER', name:'FEED CARRIER', desc:'Roller จ่าย + Carrier เลื่อน +24.5mm',    btn:'⟳ Feed Carrier',   type:'free'   },
-  { id:'INDEX',        name:'INDEX',        desc:'ตรวจสอบ: มี Carrier?',                     btn:'✓ มี Carrier',     type:'free'   },
-  { id:'CHECK_INDEX',  name:'CHECK INDEX',  desc:'ตรวจสอบ: มีชิ้นงาน?',                      btn:'✓ มีชิ้นงาน',      type:'free'   },
-  { id:'LOAD_PART',    name:'LOAD PART',    desc:'Cylinder2 วางชิ้นงาน',                      btn:'✓ วางแล้ว',        type:'free'   },
-  { id:'SEAL',         name:'SEAL',         desc:'Cylinder1 กดลง → Seal → ยกขึ้น',           btn:'⬇ Seal',           type:'free'   },
-  { id:'VISION',       name:'VISION',       desc:'ตรวจสอบคุณภาพการ Seal',                    btn:'👁 Inspect',        type:'free'   },
-  { id:'ROLL_COLLECT', name:'ROLL COLLECT', desc:'Roller เก็บงาน (ม่วง) หมุน 1 รอบ',        btn:'⟳ Roll Collect',   type:'free'   },
-  { id:'RESET',        name:'RESET',        desc:'Reset กลับต้น → เริ่ม Cycle ใหม่',         btn:'↺ Reset',          type:'reset'  },
+  {
+    id:'start', name:'START / INIT', icon:'▶',
+    desc:'เริ่มต้นระบบ — กด Cylinder2 ดันขึ้น +Y ให้ carrier ติดลูกกลิ้ง',
+    anim: async (ctx) => {
+      ctx.hl('cylinder2', ctx.moveMat);
+      await ctx.tw('cylinder2', new THREE.Vector3(0,0.08,0), 0.2);
+      ctx.log('Cylinder2 ↑ pushed up','info');
+    }
+  },
+  {
+    id:'roller_feed', name:'ROLLER FEED', icon:'🟢',
+    desc:'Roller จ่าย Carrier (ขวา สีเขียว) หมุน 1 รอบ',
+    anim: async (ctx) => {
+      ctx.hl('roller_feed', ctx.hlMat);
+      await ctx.twRot('roller_feed', -Math.PI*2, 0.4, 'x');
+      ctx.log('Roller Feed ↻ 1 revolution','info');
+    }
+  },
+  {
+    id:'index', name:'INDEX', icon:'📍',
+    desc:'ตรวจสอบว่ามี Carrier — ยืนยัน carrier อยู่ในร่อง',
+    anim: async (ctx) => {
+      ctx.hl('carrier_tape', ctx.hlMat);
+      ctx.log('INDEX: Carrier present ✓','info');
+    }
+  },
+  {
+    id:'check_index', name:'CHECK_INDEX', icon:'✅',
+    desc:'ตรวจสอบว่ามีชิ้นงานไหม — ยืนยัน position OK',
+    anim: async (ctx) => {
+      ctx.hl('carrier_tape', ctx.hlMat);
+      ctx.log('CHECK_INDEX: Position OK ✓','info');
+    }
+  },
+  {
+    id:'load_part', name:'LOAD_PART', icon:'📦',
+    desc:'ยืนยันว่ามีชิ้นงานวางแล้ว',
+    anim: async (ctx) => {
+      ctx.hl('support_seal', ctx.moveMat);
+      ctx.log('LOAD_PART: Component placed ✓','info');
+    }
+  },
+  {
+    id:'seal', name:'SEAL', icon:'🔥',
+    desc:'seal_head + cylinder1 + support_seal กดลง -Y พร้อมกัน → hold → ยกขึ้น',
+    anim: async (ctx) => {
+      ctx.hl('seal_head',    ctx.warmMat);
+      ctx.hl('cylinder1',    ctx.warmMat);
+      ctx.hl('support_seal', ctx.warmMat);
+      // กดลงพร้อมกันทั้ง 3 ชิ้น
+      ctx.tw('seal_head',    new THREE.Vector3(0,-0.13,0), 0.15);
+      ctx.tw('cylinder1',    new THREE.Vector3(0,-0.10,0), 0.15);
+      await ctx.tw('support_seal', new THREE.Vector3(0,-0.13,0), 0.15);
+      // hold 500ms
+      await ctx.wait(500);
+      // ยกขึ้นพร้อมกัน
+      ctx.ret('seal_head',    0.15);
+      ctx.ret('cylinder1',    0.15);
+      await ctx.ret('support_seal', 0.15);
+      ctx.log('SEAL: Heat + Pressure ✓','info');
+    }
+  },
+  {
+    id:'vision', name:'VISION', icon:'👁',
+    desc:'ตรวจสอบคุณภาพการ Seal',
+    anim: async (ctx) => {
+      ctx.hl('seal_head', ctx.hlMat);
+      await ctx.wait(300);
+      ctx.log('VISION: Seal quality OK ✓','info');
+    }
+  },
+  {
+    id:'roll', name:'ROLL (เก็บงาน)', icon:'🟣',
+    desc:'Roller เก็บงาน (ซ้าย สีม่วง) หมุน 1 รอบ',
+    anim: async (ctx) => {
+      ctx.hl('roller_collect', ctx.hlMat);
+      await ctx.twRot('roller_collect', -Math.PI*2, 0.4, 'x');
+      ctx.log('Roller Collect ↻ 1 revolution','info');
+      // นับ packed
+      window._packed = (window._packed||0)+1;
+      document.getElementById('cPacked').textContent = window._packed;
+    }
+  },
+  {
+    id:'carrier_move', name:'CARRIER +24.5mm', icon:'➡',
+    desc:'ขยับ Carrier ไปข้างหน้า 24.5mm ทีละช่อง — กดได้หลายครั้ง',
+    repeatable: true,
+    anim: async (ctx) => {
+      ctx.hl('carrier_tape', ctx.moveMat);
+      // cylinder2 ลงก่อน (release)
+      await ctx.ret('cylinder2', 0.12);
+      // carrier เลื่อน -X (ตามทิศลูกศรสีฟ้า) 1 pitch
+      await ctx.tw('carrier_tape', new THREE.Vector3(-CARRIER_PITCH,0,0), 0.25);
+      // cylinder2 ดันขึ้นใหม่
+      await ctx.tw('cylinder2', new THREE.Vector3(0,0.08,0), 0.15);
+      ctx.log(`CARRIER: moved 24.5mm ✓ (total ${(window._moves=(window._moves||0)+1)} steps)`,'info');
+    }
+  },
+  {
+    id:'reset', name:'RESET', icon:'↺',
+    desc:'รีเซ็ตกลับเริ่มใหม่ทุกอย่าง',
+    danger: true,
+    anim: async (ctx) => {
+      ctx.restoreAll();
+      ctx.resetAllPos();
+      window._packed=0; window._moves=0;
+      document.getElementById('cPacked').textContent='0';
+      window._cycles=(window._cycles||0)+1;
+      document.getElementById('cCycles').textContent=window._cycles;
+      ctx.log('↺ RESET — ready for next cycle','warn');
+    }
+  },
 ];
 
-// ── Three.js Setup ──
+// ── Three.js ──
 const canvas = document.getElementById('c');
-const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+const renderer = new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
 renderer.outputColorSpace = THREE.SRGBColorSpace;
-
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x06080a);
-
-const camera = new THREE.PerspectiveCamera(45, 1, 0.01, 1000);
-const controls = new OrbitControls(camera, canvas);
-controls.enableDamping = true;
-
-scene.add(new THREE.AmbientLight(0xffffff, 0.75));
-const dl = new THREE.DirectionalLight(0xffffff, 1.2); dl.position.set(4,6,4); scene.add(dl);
-const dl2= new THREE.DirectionalLight(0x6688ff, 0.35); dl2.position.set(-4,2,-4); scene.add(dl2);
+const camera = new THREE.PerspectiveCamera(45,1,0.01,1000);
+const controls = new OrbitControls(camera,canvas);
+controls.enableDamping=true;
+scene.add(new THREE.AmbientLight(0xffffff,0.75));
+const dl=new THREE.DirectionalLight(0xffffff,1.2); dl.position.set(4,6,4); scene.add(dl);
+const dl2=new THREE.DirectionalLight(0x6688ff,0.35); dl2.position.set(-4,2,-4); scene.add(dl2);
 
 function resize(){
-  const p = canvas.parentElement;
-  renderer.setSize(p.clientWidth, p.clientHeight, false);
-  camera.aspect = p.clientWidth / p.clientHeight;
+  const p=canvas.parentElement;
+  renderer.setSize(p.clientWidth,p.clientHeight,false);
+  camera.aspect=p.clientWidth/p.clientHeight;
   camera.updateProjectionMatrix();
 }
 resize();
 new ResizeObserver(resize).observe(canvas.parentElement);
 
 // ── Mesh registry ──
-const meshMap = {}, origPos = {}, origMat = {};
-function reg(role, mesh){
-  meshMap[role]   = mesh;
-  origPos[role]   = mesh.position.clone();
-  origMat[role]   = Array.isArray(mesh.material)
-    ? mesh.material.map(m => m.clone())
-    : mesh.material.clone();
+const meshMap={},origPos={},origMat={};
+function reg(role,mesh){
+  meshMap[role]=mesh;
+  origPos[role]=mesh.position.clone();
+  origMat[role]=Array.isArray(mesh.material)?mesh.material.map(m=>m.clone()):mesh.material.clone();
 }
+
+// ── Tween (Promise-based) ──
+const tweens=[];
+function tw(role,delta,durSec){
+  return new Promise(resolve=>{
+    const mesh=meshMap[role]; if(!mesh){resolve();return;}
+    const i=tweens.findIndex(t=>t.role===role); if(i>-1) tweens.splice(i,1);
+    tweens.push({role,mesh,from:mesh.position.clone(),
+      to:mesh.position.clone().add(delta),dur:durSec,elapsed:0,onDone:resolve});
+  });
+}
+function twRot(role,deltaRot,durSec,axis='x'){
+  return new Promise(resolve=>{
+    const mesh=meshMap[role]; if(!mesh){resolve();return;}
+    const key=role+'_r';
+    const i=tweens.findIndex(t=>t.role===key); if(i>-1) tweens.splice(i,1);
+    tweens.push({role:key,mesh,fromRot:mesh.rotation[axis],toRot:mesh.rotation[axis]+deltaRot,
+      isRot:true,rotAxis:axis,dur:durSec,elapsed:0,onDone:resolve});
+  });
+}
+function ret(role,durSec=0.2){
+  return new Promise(resolve=>{
+    const mesh=meshMap[role]; if(!mesh||!origPos[role]){resolve();return;}
+    const i=tweens.findIndex(t=>t.role===role); if(i>-1) tweens.splice(i,1);
+    tweens.push({role,mesh,from:mesh.position.clone(),to:origPos[role].clone(),
+      dur:durSec,elapsed:0,onDone:resolve});
+  });
+}
+function wait(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function ease(t){return t<0.5?2*t*t:-1+(4-2*t)*t;}
 
 // ── Materials ──
-const hlMat   = new THREE.MeshStandardMaterial({color:0x00c9a7, emissive:0x003322, roughness:0.3});
-const warmMat = new THREE.MeshStandardMaterial({color:0xff7700, emissive:0x331100, roughness:0.3});
-const moveMat = new THREE.MeshStandardMaterial({color:0xa78bfa, emissive:0x110033, roughness:0.3});
-const feedMat = new THREE.MeshStandardMaterial({color:0x4ade80, emissive:0x002211, roughness:0.3});
-const blueMat = new THREE.MeshStandardMaterial({color:0x60a5fa, emissive:0x001133, roughness:0.2});
-const amberMat= new THREE.MeshStandardMaterial({color:0xfbbf24, emissive:0x221100, roughness:0.25});
+const hlMat   = new THREE.MeshStandardMaterial({color:0x00c9a7,emissive:0x003322,roughness:0.3});
+const alMat   = new THREE.MeshStandardMaterial({color:0xf87171,emissive:0x330000,roughness:0.3});
+const warmMat = new THREE.MeshStandardMaterial({color:0xff7700,emissive:0x331100,roughness:0.3});
+const moveMat = new THREE.MeshStandardMaterial({color:0xa78bfa,emissive:0x110033,roughness:0.3});
 
-function hl(role, mat){
-  const m = meshMap[role];
-  if(!m) return;
-  m.material = mat;
-}
-function restoreOne(role){
-  const m = meshMap[role];
-  if(!m || !origMat[role]) return;
-  m.material = Array.isArray(origMat[role])
-    ? origMat[role].map(x => x.clone())
-    : origMat[role].clone();
-}
-function restoreAll(){
-  Object.keys(meshMap).forEach(restoreOne);
-}
-function resetPositions(){
-  Object.keys(meshMap).forEach(role => {
-    const m = meshMap[role];
-    if(m && origPos[role]){
-      m.position.copy(origPos[role]);
-      m.rotation.set(0, 0, 0);
-    }
-  });
+function hl(role,mat){const m=meshMap[role];if(m)m.material=mat;}
+function restoreAll(){Object.keys(meshMap).forEach(r=>{const m=meshMap[r];if(m&&origMat[r])m.material=Array.isArray(origMat[r])?origMat[r].map(x=>x.clone()):origMat[r].clone();});}
+function resetAllPos(){
+  tweens.length=0;
+  Object.keys(meshMap).forEach(r=>{const m=meshMap[r];if(m&&origPos[r]){m.position.copy(origPos[r]);m.rotation.set(0,0,0);}});
 }
 
-// ── Tween system (position) ──
-const tweens = [];
-function tw(role, delta, durSec, onDone=null){
-  const mesh = meshMap[role]; if(!mesh) return;
-  const key = role;
-  const i = tweens.findIndex(t => t.key === key); if(i>-1) tweens.splice(i,1);
-  tweens.push({key, mesh,
-    from: mesh.position.clone(),
-    to:   mesh.position.clone().add(delta),
-    dur: durSec, elapsed:0, isRot:false, onDone
-  });
-  document.getElementById('animTag').style.display = 'block';
-}
-function ret(role, durSec=0.2){
-  const mesh = meshMap[role]; if(!mesh || !origPos[role]) return;
-  const key = role;
-  const i = tweens.findIndex(t => t.key === key); if(i>-1) tweens.splice(i,1);
-  tweens.push({key, mesh,
-    from: mesh.position.clone(),
-    to:   origPos[role].clone(),
-    dur: durSec, elapsed:0, isRot:false, onDone:null
-  });
-}
-
-// ── Roller spin: หมุนรอบตัวเอง n รอบ (pivot = ตำแหน่งเดิมของ mesh) ──
-// ใช้ tween หมุน rotation แกน X ทีละ 1 รอบ วนซ้ำตาม n
-function spinRoller(role, mat, nRounds, durPerRound, onDone=null){
-  const mesh = meshMap[role]; if(!mesh){ if(onDone) onDone(); return; }
-  hl(role, mat);
-  // คำนวณ total rotation
-  const totalRad = Math.PI * 2 * nRounds;
-  const key = role + '_spin';
-  const i = tweens.findIndex(t => t.key === key); if(i>-1) tweens.splice(i,1);
-  const startRot = mesh.rotation.x;
-  tweens.push({key, mesh,
-    fromRot: startRot,
-    toRot:   startRot + totalRad,
-    dur: durPerRound * nRounds,
-    elapsed: 0,
-    isRot: true, rotAxis:'x',
-    onDone
-  });
-  document.getElementById('animTag').style.display = 'block';
-}
-
-function ease(t){ return t<0.5 ? 2*t*t : -1+(4-2*t)*t; }
+// ctx object passed to each step anim
+const ctx = {hl,hlMat,alMat,warmMat,moveMat,tw,twRot,ret,wait,restoreAll,resetAllPos,
+  log:(msg,type)=>addLog(msg,type)};
 
 // ── Render loop ──
-const clock = new THREE.Clock();
+const clock=new THREE.Clock();
 function animate(){
   requestAnimationFrame(animate);
-  const dt = clock.getDelta();
+  const dt=clock.getDelta();
   controls.update();
-  for(let i = tweens.length-1; i>=0; i--){
-    const t = tweens[i];
-    t.elapsed += dt;
-    const p  = Math.min(t.elapsed / t.dur, 1);
-    const ep = ease(p);
-    if(t.isRot){
-      t.mesh.rotation[t.rotAxis||'x'] = t.fromRot + (t.toRot - t.fromRot) * ep;
-    } else {
-      t.mesh.position.lerpVectors(t.from, t.to, ep);
-    }
-    if(p >= 1){
-      if(t.onDone) t.onDone();
-      tweens.splice(i, 1);
-    }
+  for(let i=tweens.length-1;i>=0;i--){
+    const t=tweens[i]; t.elapsed+=dt;
+    const p=Math.min(t.elapsed/t.dur,1),ep=ease(p);
+    if(t.isRot) t.mesh.rotation[t.rotAxis||'x']=t.fromRot+(t.toRot-t.fromRot)*ep;
+    else t.mesh.position.lerpVectors(t.from,t.to,ep);
+    if(p>=1){if(t.onDone)t.onDone();tweens.splice(i,1);}
   }
-  if(tweens.length === 0) document.getElementById('animTag').style.display='none';
-  renderer.render(scene, camera);
+  renderer.render(scene,camera);
 }
 animate();
 
 // ── Load GLB ──
-new GLTFLoader().load('./export/machine.glb', gltf => {
+new GLTFLoader().load('./export/machine.glb',gltf=>{
   scene.add(gltf.scene);
-  const box    = new THREE.Box3().setFromObject(gltf.scene);
-  const center = box.getCenter(new THREE.Vector3());
-  const size   = box.getSize(new THREE.Vector3()).length();
+  const box=new THREE.Box3().setFromObject(gltf.scene);
+  const center=box.getCenter(new THREE.Vector3());
+  const size=box.getSize(new THREE.Vector3()).length();
   gltf.scene.position.sub(center);
-  camera.position.set(0, size*0.3, size*1.15);
-  controls.target.set(0, 0, 0);
+  camera.position.set(0,size*0.3,size*1.15);
+  controls.target.set(0,0,0);
   controls.update();
-  gltf.scene.traverse(obj => {
+  gltf.scene.traverse(obj=>{
     if(!obj.isMesh) return;
-    const role = Object.keys(PART_NAMES).find(r => PART_NAMES[r] === obj.name);
-    if(role) reg(role, obj);
+    const role=Object.keys(PART_NAMES).find(r=>PART_NAMES[r]===obj.name);
+    if(role) reg(role,obj);
   });
-  addLog(`GLB loaded — ${Object.keys(meshMap).length}/${Object.keys(PART_NAMES).length} parts mapped`, 'info');
-}, null, err => addLog('GLB error: '+err.message, 'err'));
+  addLog(`GLB loaded — ${Object.keys(meshMap).length}/${Object.keys(PART_NAMES).length} parts mapped`,'info');
+},null,err=>addLog('GLB error: '+err.message,'err'));
+
+// ── Build step buttons ──
+let currentStep = -1;
+let animating = false;
+
+const wrap = document.getElementById('stepsWrap');
+
+STEPS.forEach((step,idx)=>{
+  const btn = document.createElement('button');
+  btn.className = 'step-btn';
+  btn.id = 'sbtn_'+step.id;
+  btn.disabled = idx !== 0; // only first enabled at start
+  if(step.danger) btn.classList.add('danger');
+  btn.innerHTML=`
+    <div class="step-num">${idx+1}</div>
+    <div class="step-info">
+      <div class="step-name">${step.icon} ${step.name}</div>
+      <div class="step-desc">${step.desc}</div>
+    </div>
+  `;
+  btn.onclick = () => runStep(idx);
+  wrap.appendChild(btn);
+});
+
+async function runStep(idx){
+  if(animating) return;
+  const step = STEPS[idx];
+  animating = true;
+
+  // update UI
+  document.querySelectorAll('.step-btn').forEach(b=>b.classList.remove('active'));
+  const btn = document.getElementById('sbtn_'+step.id);
+  btn.classList.add('active');
+
+  // update overlay
+  document.getElementById('ovState').textContent = step.name;
+  document.getElementById('ovDesc').textContent = step.desc;
+  document.getElementById('stepBadge').textContent = `Step ${idx+1}/${STEPS.length}`;
+  document.getElementById('hdot').className='hdot run';
+  document.getElementById('hstatus').textContent='Running';
+
+  addLog(`[Step ${idx+1}] ${step.name}`,'info');
+
+  // restore highlights before each step (except reset)
+  if(step.id !== 'reset') restoreAll();
+
+  // run animation
+  await step.anim(ctx);
+
+  // mark done
+  if(step.id === 'reset'){
+    // re-enable all, mark all not done
+    document.querySelectorAll('.step-btn').forEach((b,i)=>{
+      b.classList.remove('active','done');
+      b.disabled = i !== 0;
+    });
+    currentStep = -1;
+  } else {
+    btn.classList.remove('active');
+    if(!step.repeatable) btn.classList.add('done');
+    currentStep = idx;
+
+    // enable next step
+    const nextIdx = idx+1;
+    if(nextIdx < STEPS.length){
+      const nextBtn = document.getElementById('sbtn_'+STEPS[nextIdx].id);
+      nextBtn.disabled = false;
+      // also keep repeatable step enabled
+    }
+    // always keep carrier_move and reset enabled after unlock
+    const carrBtn = document.getElementById('sbtn_carrier_move');
+    const rstBtn  = document.getElementById('sbtn_reset');
+    if(currentStep >= 1) { // after roller_feed at least
+      if(carrBtn) carrBtn.disabled = false;
+    }
+    if(currentStep >= 0) {
+      if(rstBtn) rstBtn.disabled = false;
+    }
+  }
+
+  document.getElementById('hdot').className='hdot';
+  document.getElementById('hstatus').textContent='Idle';
+  animating = false;
+}
 
 // ── Log ──
-function addLog(msg, type='info'){
-  const b  = document.getElementById('logBody');
-  const ts = new Date().toTimeString().slice(0,8);
-  const el = document.createElement('div');
-  el.className = 'le ' + type;
-  el.innerHTML = `<span class="ts">${ts}</span><span class="ev">${msg}</span>`;
-  b.appendChild(el);
-  b.scrollTop = b.scrollHeight;
+function addLog(msg,type='info'){
+  const b=document.getElementById('logBody');
+  const ts=new Date().toTimeString().slice(0,8);
+  const el=document.createElement('div');
+  el.className='le '+type;
+  el.innerHTML=`<span class="ts">${ts}</span><span class="ev">${msg}</span>`;
+  b.appendChild(el);b.scrollTop=b.scrollHeight;
 }
-
-// ── Global State ──
-window.speedMul = 1;
-let started     = false;   // ยังไม่กด START
-let animating   = false;
-let cycles=0, feedCount=0, sealCount=0, rollCount=0;
-let carrierMM   = 0;
-
-// ── Overlay helper ──
-function setOverlay(name, desc){
-  document.getElementById('ovState').textContent = name;
-  document.getElementById('ovDesc').textContent  = desc;
-}
-
-// ── Build Step UI ──
-function buildUI(){
-  const sl = document.getElementById('stepsList');
-  sl.innerHTML = '';
-  STEPS.forEach((s, i) => {
-    const locked  = (s.type==='start' && started) ||
-                    (s.type==='free'  && !started) ||
-                    (s.type==='reset' && !started);
-    const card = document.createElement('div');
-    let cardCls = 'step-card';
-    if(s.type==='start' && !started) cardCls += ' start-card';
-    else if(!locked) cardCls += ' unlocked';
-    else             cardCls += ' locked';
-    card.className = cardCls;
-    card.id = 'sc_'+i;
-
-    let btnCls = 'step-btn';
-    if(s.type==='start' && !started)   btnCls += ' go-start';
-    else if(s.type==='reset' && started) btnCls += ' go-reset';
-    else if(!locked)                   btnCls += ' go';
-
-    card.innerHTML = `
-      <div class="step-num">${i+1}</div>
-      <div class="step-info">
-        <div class="step-name">${s.name}</div>
-        <div class="step-desc">${s.desc}</div>
-      </div>
-      <button class="step-btn ${btnCls.replace('step-btn','').trim()}"
-        id="sb_${i}"
-        ${locked ? 'disabled' : ''}
-        onclick="doStep(${i})"
-      >${s.btn}</button>
-    `;
-    sl.appendChild(card);
-  });
-}
-
-// ── Do Step ──
-window.doStep = function(idx){
-  if(animating) return;
-  const s = STEPS[idx];
-
-  // Lock check
-  if(s.type==='free'  && !started) return;
-  if(s.type==='reset' && !started) return;
-
-  addLog(`[${idx+1}] ${s.name}`, 'info');
-  setOverlay(s.name, s.desc);
-  document.getElementById('hdot').className = 'hdot run';
-  document.getElementById('hstatus').textContent = s.name;
-
-  runAnim(s.id, () => {
-    if(s.id === 'START')  { started = true;  buildUI(); }
-    if(s.id === 'RESET')  { started = false; buildUI(); }
-    else buildUI(); // refresh button states
-  });
-};
-
-// ── Animation per Step ──
-function runAnim(id, onDone){
-  restoreAll();
-  animating = true;
-  const S   = window.speedMul;
-  const end = () => { animating = false; onDone(); };
-
-  switch(id){
-
-    // ── 1. START: Cylinder2 ดันขึ้น +Y ล็อก Carrier ──
-    case 'START':
-      hl('cylinder2',    moveMat);
-      hl('carrier_tape', hlMat);
-      tw('cylinder2', new THREE.Vector3(0, 0.08, 0), 0.35/S, () => {
-        addLog('  Cylinder2 UP +Y — Carrier locked ✓', 'info');
-        setTimeout(end, 200/S);
-      });
-      break;
-
-    // ── 2. FEED_CARRIER: roller_feed หมุน 1 รอบรอบตัวเอง + carrier เลื่อน ──
-    case 'FEED_CARRIER':
-      hl('carrier_tape', hlMat);
-      // roller_feed หมุน 1 รอบรอบตัวเอง (แกน X = หมุนแนวล้อรถ)
-      spinRoller('roller_feed', feedMat, 1, 0.50/S, () => {
-        restoreOne('roller_feed');
-        feedCount++;
-        carrierMM += 24.5;
-        document.getElementById('cFeed').textContent  = feedCount;
-        document.getElementById('distVal').textContent = carrierMM.toFixed(1);
-        addLog(`  Feed #${feedCount} — Carrier +24.5mm (รวม ${carrierMM.toFixed(1)} mm) ✓`, 'info');
-        // carrier tape เลื่อนสั้นๆ แล้ว reset กลับ (visual only)
-        tw('carrier_tape', new THREE.Vector3(-0.098, 0, 0), 0.28/S, () => {
-          setTimeout(() => ret('carrier_tape', 0.18/S), 80/S);
-          setTimeout(end, 350/S);
-        });
-      });
-      break;
-
-    // ── 3. INDEX: flash carrier_tape ยืนยันว่ามี carrier ──
-    case 'INDEX':{
-      hl('carrier_tape', hlMat);
-      hl('cylinder2',    moveMat);
-      let n=0;
-      const blink=()=>{
-        if(n>=6){ addLog('  INDEX: Carrier OK ✓','info'); setTimeout(end,120/S); return; }
-        const on = n%2===0;
-        hl('carrier_tape', on ? hlMat : null);
-        if(!on) restoreOne('carrier_tape');
-        n++; setTimeout(blink, 100/S);
-      };
-      blink();
-      break;
-    }
-
-    // ── 4. CHECK_INDEX: cylinder2 jitter + seal_holder flash ──
-    case 'CHECK_INDEX':{
-      hl('cylinder2',    moveMat);
-      hl('seal_holder',  hlMat);
-      tw('cylinder2', new THREE.Vector3(0.006,0,0), 0.06/S, ()=>{
-        ret('cylinder2', 0.06/S);
-        let n=0;
-        const blink=()=>{
-          if(n>=4){ addLog('  CHECK_INDEX: Part detected ✓','info'); setTimeout(end,120/S); return; }
-          hl('seal_holder', n%2===0 ? amberMat : hlMat);
-          n++; setTimeout(blink, 120/S);
-        };
-        blink();
-      });
-      break;
-    }
-
-    // ── 5. LOAD_PART: cylinder2 กดลง -Y วางชิ้นงาน แล้วยกขึ้น ──
-    case 'LOAD_PART':
-      hl('cylinder2', moveMat);
-      tw('cylinder2', new THREE.Vector3(0,-0.05,0), 0.22/S, ()=>{
-        addLog('  วางชิ้นงาน ✓','info');
-        setTimeout(()=>ret('cylinder2', 0.20/S), 280/S);
-        setTimeout(end, 580/S);
-      });
-      break;
-
-    // ── 6. SEAL: cylinder1 + seal_head กดลง hold 600ms ยกขึ้น ──
-    case 'SEAL':
-      hl('seal_head',   warmMat);
-      hl('cylinder1',   warmMat);
-      hl('seal_heater', warmMat);
-      hl('seal_holder', hlMat);
-      tw('seal_head',   new THREE.Vector3(0,-0.13,0), 0.18/S);
-      tw('cylinder1',   new THREE.Vector3(0,-0.10,0), 0.18/S);
-      tw('seal_heater', new THREE.Vector3(0,-0.13,0), 0.18/S, ()=>{
-        addLog('  Sealing hold…','info');
-        setTimeout(()=>{
-          ret('seal_head',   0.18/S);
-          ret('cylinder1',   0.18/S);
-          ret('seal_heater', 0.18/S);
-          sealCount++;
-          document.getElementById('cSeals').textContent = sealCount;
-          addLog(`  SEAL #${sealCount} เสร็จ ✓`,'info');
-          setTimeout(end, 250/S);
-        }, 600/S);
-      });
-      break;
-
-    // ── 7. VISION: seal_holder pulse สีฟ้า 2 รอบ ──
-    case 'VISION':
-      hl('seal_holder', blueMat);
-      tw('seal_holder', new THREE.Vector3(0,0.012,0), 0.15/S, ()=>{
-        ret('seal_holder', 0.15/S);
-        setTimeout(()=>{
-          tw('seal_holder', new THREE.Vector3(0,0.012,0), 0.15/S, ()=>{
-            ret('seal_holder', 0.15/S);
-            addLog('  VISION: Seal OK ✓','info');
-            setTimeout(end, 200/S);
-          });
-        }, 180/S);
-      });
-      break;
-
-    // ── 8. ROLL_COLLECT: roller_collect หมุน 1 รอบรอบตัวเอง (สีม่วง) ──
-    case 'ROLL_COLLECT':
-      spinRoller('roller_collect', moveMat, 1, 0.50/S, ()=>{
-        restoreOne('roller_collect');
-        rollCount++;
-        document.getElementById('cRoll').textContent = rollCount;
-        addLog(`  Roll Collect #${rollCount} ✓`,'info');
-        setTimeout(end, 150/S);
-      });
-      break;
-
-    // ── 9. RESET ──
-    case 'RESET':
-      tweens.length = 0;
-      restoreAll();
-      resetPositions();
-      carrierMM = 0;
-      cycles++;
-      document.getElementById('cCycles').textContent  = cycles;
-      document.getElementById('cFeed').textContent    = feedCount;
-      document.getElementById('cSeals').textContent   = sealCount;
-      document.getElementById('cRoll').textContent    = rollCount;
-      document.getElementById('distVal').textContent  = '0.0';
-      document.getElementById('hdot').className       = 'hdot';
-      document.getElementById('hstatus').textContent  = 'Idle — กด START ก่อน';
-      setOverlay('READY', 'กด ▶ START เพื่อเริ่มต้น');
-      addLog(`↺ Reset — Cycle #${cycles} เสร็จ`, 'warn');
-      setTimeout(end, 200);
-      break;
-
-    default:
-      end();
-  }
-}
-
-// ── Init UI ──
-buildUI();
-addLog('BK05 Manual Mode — กด ▶ START ก่อนเพื่อ unlock ปุ่มอื่น', 'info');
 </script>
 </body>
 </html>
