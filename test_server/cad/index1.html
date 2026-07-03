@@ -27,6 +27,7 @@
     .hdot.replay-mode{background:var(--purple);box-shadow:0 0 6px var(--purple)}
     #hstatus{font-size:12px;color:var(--muted);margin-left:6px;margin-right:16px}
     
+    /* 🛠️ ปุ่มนำทางข้ามหน้าจอ (Navigation Controls) */
     .nav-actions{
       display:flex;align-items:center;gap:8px;margin-left:auto;
     }
@@ -451,7 +452,7 @@ window.fsmStop = function(){
   }
 };
 
-// 🚨🚨🚨 ฟังก์ชันเปิดสัญญาณขัดจังหวะฉุกเฉินฉับพลัน Soft Interlock ความเร็วสูง
+// 🚨🎯 พาร์ทสคริปต์ยิงคำสั่ง ESTOP ทะลุ WebSocket หาสมองกลหลักขากลาง
 window.fsmEStop = function() {
   if (ws && ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify({ action: "ESTOP" })); 
@@ -582,7 +583,6 @@ function initWebSocket() {
       document.getElementById('btnOK').disabled = !(isSemiAutoMode && stepAllowed);
       document.getElementById('btnNG').disabled = !(isSemiAutoMode && stepAllowed);
       
-      // ดึงสิทธิ์คืนปุ่มควบคุมหากปลดล็อกสถานะเออร์เรอร์ฉุกเฉินแล้ว
       if (sys.current_state !== 'ALARM') {
          document.getElementById('btnStart').disabled = running;
          document.getElementById('btnStop').disabled = !running;
@@ -628,16 +628,21 @@ function initWebSocket() {
         playAnim(current);
         addLog('→ ' + current, 'info');
       }
+
+      setIO(sys.ip0, sys.op0);
     } 
     else if (raw.type === "HISTORY_RESPONSE") {
       historicalTimeline = raw.data;
       if (historicalTimeline.length === 0) return;
+
       const slider = document.getElementById("tmSlider");
       slider.max = historicalTimeline.length - 1;
       slider.value = 0;
+
       document.getElementById("tmStartT").innerText = historicalTimeline[0].time.split(" ")[1];
       document.getElementById("tmEndT").innerText = historicalTimeline[historicalTimeline.length - 1].time.split(" ")[1];
       addLog(`📜 โหลดข้อมูลดิบ ${historicalTimeline.length} แถวจาก SQL ดาต้าเบสแล้ว`, "ok");
+      
       if(twinAppMode === "REPLAY") slideHistory(0);
     }
   };
