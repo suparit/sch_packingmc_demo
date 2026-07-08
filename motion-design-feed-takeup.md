@@ -145,9 +145,9 @@ r(t) = √( r₀² + (thickness / π) × L(t) )
 - `thickness` = ความหนาเทปต่อชั้น
 - `L(t)` = ความยาวเทปสะสมที่พันแล้ว (คำนวณได้ฟรีจาก Feed encoder ที่มีอยู่แล้ว)
 
-### 4.4 Legacy Motor Analysis (BK05)
+### 4.4 Legacy Motor Analysis (เครื่องเดิม)
 
-มอเตอร์เดิมของเครื่องอ้างอิง BK05: **DKM 6IDGF-6G + Gearhead 6GD20M**
+มอเตอร์เดิมของเครื่องอ้างอิงจากเครื่องเดิม : **DKM 6IDGF-6G + Gearhead 6GD20M**
 
 | พารามิเตอร์ | ค่า |
 |---|---|
@@ -296,14 +296,3 @@ Take-up Reel อยู่ใกล้ operator — ต้องมี:
 
 ---
 
-## 8. Open Action Items
-
-- [x] ระบุแรงตึงเทปเป้าหมายเบื้องต้น — รอยืนยันหน่วย "torque ประมาณ 2" กับพี่เลี้ยง (rated spec หรือ operating load)
-- [ ] วัดเส้นผ่านศูนย์กลาง core และเส้นผ่านศูนย์กลางสูงสุดของม้วนเทปเต็ม (จากแบบ CAD ของตัวเอง)
-- [ ] ทำ Empirical Torque Calibration ตาม Section 4.6 เมื่อประกอบตัวทดลองเสร็จ
-- [x] เลือก class มอเตอร์เบื้องต้น: Delta 750W (ASD-B2-0721 + ECMA-C10807)
-- [ ] ยืนยัน STO/safety module ของรุ่น servo ที่เลือก
-- [ ] ยืนยัน torque command interface (analog vs Modbus) ให้ตรงกับสถาปัตยกรรม Extension IO เดิม
-- [ ] ยืนยันไฟ 3-phase พร้อมใช้งานใน workshop/lab สำหรับ servo 750W
-- [ ] ทำ risk assessment ตาม ISO 12100 สำหรับจุด nip point ของ Take-up Reel
-- [ ] คำนวณ holding torque / torque-speed curve ของ closed-loop stepper เทียบกับ load จริงของ Feed roller
