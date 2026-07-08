@@ -289,7 +289,7 @@ Take-up Reel อยู่ใกล้ operator — ต้องมี:
 | ด้าน | Prototype | Production |
 |---|---|---|
 | Feed | Closed-loop stepper + measuring roller encoder | (คงเดิม หรืออัพเป็น servo position mode ถ้าต้องการความเร็ว/แม่นยำสูงขึ้น) |
-| Take-up | Manual AC motor + knob (BK05 legacy) | **Delta ASDA-A2/B2 Torque Control Mode 750W** (ตัดสินใจแล้ว) |
+| Take-up | Manual AC motor + knob (legacy) | **Delta ASDA-A2/B2 Torque Control Mode 750W** (ตัดสินใจแล้ว) |
 | เหตุผล | Validate sequence, cost ต่ำ | Digitize สิ่งที่ operator ทำด้วยมือ ให้ repeatable/automated |
 
 **หลักการ migration**: FSM คุยกับ motion ผ่าน event ("position reached", "tension status") ไม่ใช่ raw I/O — เปลี่ยน hardware โดยไม่ต้อง redesign sequence logic
