@@ -29,7 +29,7 @@
 
 ## 2. Product Being Packaged
 
-ชิ้นงานที่ carrier tape ต้องบรรจุคือ **Schaffner RE100-3.1-1M0** (SMD Common Mode Choke):
+ชิ้นงานที่ carrier tape ต้องบรรจุคือ อุปกรณ์ Noise Filter (SMD Common Mode Choke):
 
 | พารามิเตอร์ | ค่า |
 |---|---|
