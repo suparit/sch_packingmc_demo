@@ -1,0 +1,18 @@
+state_id,state_name,description,entry_action,guard,next_state_ok,next_state_ng,timeout_ms,notes
+0,LOAD_CARRIER,โหลด carrier tape เข้าเครื่อง,-,-,INDEX_CARRIER,ALARM,500,จุดเริ่มหลัง RESET
+1,INDEX_CARRIER,เดินเทปไปตำแหน่ง index,-,-,POWER_ON,ALARM,800,
+2,POWER_ON,เปิดระบบ,-,-,SET_PARAMS,ALARM,500,ลำดับนี้ดูผิดที่ - ดูหัวข้อ "ประเด็นค้าง" ใน fsm_spec.md
+3,SET_PARAMS,ตั้งค่าพารามิเตอร์,-,-,SENSOR_CHECK_CARRIER,ALARM,500,ชนกับชื่อ action SET_PARAMS ใน protocol
+4,SENSOR_CHECK_CARRIER,ตรวจตำแหน่งเทปด้วยเซนเซอร์,-,position_ok,READY,ALARM,400,
+5,READY,พร้อมทำงาน รอ START,-,-,LOAD_PART,ALARM,500,
+6,LOAD_PART,วางชิ้นงานลงพ็อกเก็ต,-,-,VISION,ALARM,800,
+7,VISION,ตรวจชิ้นงาน (presence/position/orientation),set step_allowed=true,operator_decision,CHECK_TEMP,ALARM,400,OPERATOR GATE - หยุดรอคนกด PASS/NG; ESTOP ระหว่างรอ (step_allowed=true) ต้องเคลียร์ step_allowed=false ทันที - ดู fsm_spec.md หัวข้อ 6
+8,CHECK_TEMP,ตรวจอุณหภูมิพร้อมซีล,-,temp_in_range,FEED_CARRIER,ALARM,400,ยังไม่ได้ใช้ค่า temperature จริงจาก machine_params
+9,FEED_CARRIER,เดินเทปไปพ็อกเก็ตถัดไป,-,-,COUNT_PROCESS,ALARM,1000,มี predictive AI ตรวจ friction
+10,COUNT_PROCESS,ประมวลผลการนับ,-,-,COUNT_CHECK,ALARM,500,
+11,COUNT_CHECK,เช็คว่าครบจำนวนหรือยัง,-,count < target_pieces,COUNT_ACCUMULATE,ALARM,500,ยังไม่ได้ทำทางแยกกลับ - เดินเป็นเส้นตรง
+12,COUNT_ACCUMULATE,สะสมยอด,-,-,SEAL_PROCESS,ALARM,400,
+13,SEAL_PROCESS,ซีล cover tape (ความร้อน+แรงกด),-,-,VISION_QC,ALARM,1000,มี predictive AI ตรวจ friction
+14,VISION_QC,ตรวจคุณภาพรอยซีล,-,seal_ok,TAKEUP_REEL,ALARM,400,
+15,TAKEUP_REEL,ม้วนเก็บเข้ารีล,-,-,LOAD_CARRIER,ALARM,1000,วนกลับต้นรอบ
+16,ALARM,หยุดเครื่อง แสดง error,record_alarm(),reset_pressed,LOAD_CARRIER,-,500,next_state_ok=LOAD_CARRIER คือ fallback เท่านั้น - RESET จริงต้องกลับ last_state_before_alarm เสมอ + เคลียร์ step_allowed=false เสมอ ไม่มีเงื่อนไข; เข้าได้จากทุก state ผ่าน ESTOP (global) ไม่ใช่แค่ next_state_ng ของแถวนี้ - รายละเอียดเต็มดู fsm_spec.md หัวข้อ 6

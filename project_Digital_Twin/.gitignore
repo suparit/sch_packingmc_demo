@@ -1,0 +1,54 @@
+# ===== ไฟล์ที่เกิดจากการรัน ห้าม commit =====
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+python_backend/exports/
+cad/exports/
+# ภาพที่กล้องบันทึกตอนรัน — เกิดใหม่ได้ทุกครั้งที่รัน ไม่ใช่ source
+vision_prototype/log_images/
+
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# ===== Rust =====
+# ห้ามใส่ `target/` ลอย ๆ — มันจะบัง firmware/Appli/TouchGFX/target/ (ชั้น port ลงบอร์ด) ไปด้วย
+# และ git re-include ไฟล์ในโฟลเดอร์ที่ถูก exclude ไปแล้วไม่ได้ ใส่ `!` ทีหลังก็ไม่ช่วย
+rust_bridge/target/
+
+# ===== TouchGFX / STM32 build =====
+# generated/ Designer สร้างใหม่ได้จาก .touchgfx — Drivers/ Middlewares/ เป็นของ ST ไม่ได้แก้เอง
+firmware/**/generated/
+firmware/Drivers/
+firmware/Middlewares/
+firmware/**/.mxproject
+firmware/**/backup_*.ioc
+firmware/**/build/
+firmware/**/Debug/
+firmware/**/Release/
+*.o
+*.elf
+*.map
+simulator.exe
+
+# ===== OS / editor =====
+Thumbs.db
+desktop.ini
+.DS_Store
+.vscode/
+.idea/
+*~
+*.swp
+
+# ===== Excel temp =====
+~$*.xlsx
+~$*.docx
+~$*.pptx
+
+# ===== Claude Code =====
+.claude/settings.local.json
