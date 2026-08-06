@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Production Analytics — Digital Twin Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0c0f;--surface:#111318;--surface2:#1a1d24;--border:#2a2d38;
+      --text:#e8eaf0;--muted:#6b7080;--teal:#00c9a7;--red:#f87171;--amber:#fbbf24;--purple:#a78bfa;
+    }
+    body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+      display:grid;grid-template-rows:48px 1fr;height:100vh;overflow:hidden}
+    header{display:flex;align-items:center;gap:12px;padding:0 16px;
+      background:var(--surface);border-bottom:1px solid var(--border)}
+    .logo{font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--teal)}
+    .htitle{font-size:12px;color:var(--muted)}
+    
+    .nav-actions{
+      display:flex;align-items:center;gap:8px;margin-left:auto;
+    }
+    .nav-link-btn{
+      display:flex;align-items:center;justify-content:center;
+      font-size:15px;color:var(--muted);text-decoration:none;
+      width:32px;height:32px;border-radius:6px;border:1px solid transparent;
+      cursor:pointer;transition:all .2s;
+    }
+    .nav-link-btn:hover{
+      color:var(--teal);background:var(--surface2);border-color:var(--border);
+    }
+
+    main{padding:20px;overflow-y:auto;display:flex;flex-direction:column;gap:20px;
+      scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+    
+    .dashboard-grid{
+      display:grid;grid-template-columns:repeat(auto-fit, minmax(450px, 1fr));gap:20px;
+    }
+    .chart-card{
+      background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;
+      display:flex;flex-direction:column;gap:12px;height:340px;
+    }
+    .card-title{
+      font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);
+    }
+    .chart-wrap{
+      flex:1;position:relative;width:100%;height:100%;
+    }
+    
+    .lower-grid{
+      display:grid;grid-template-columns:300px 1fr;gap:20px;
+    }
+    .kpi-flex{
+      display:flex;flex-direction:column;gap:12px;
+    }
+    .kpi-box{
+      background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:14px;
+      display:flex;flex-direction:column;gap:4px;
+    }
+    .kpi-val{
+      font-size:22px;font-weight:700;color:var(--teal);font-family:monospace;
+    }
+    .kpi-lbl{
+      font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);
+    }
+    
+    .table-card{
+      background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;
+      display:flex;flex-direction:column;gap:12px;overflow:hidden;
+    }
+    .table-wrap{
+      flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border) transparent;
+    }
+    table{
+      width:100%;border-collapse:collapse;font-size:11px;text-align:left;
+    }
+    th{
+      background:var(--surface2);color:var(--muted);padding:8px 10px;
+      font-weight:600;text-transform:uppercase;font-size:10px;letter-spacing:.04em;
+      position:sticky;top:0;border-bottom:1px solid var(--border);
+    }
+    td{
+      padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.03);color:var(--text);font-family:monospace;
+    }
+    tr:hover td{
+      background:rgba(255,255,255,0.01);
+    }
+    .badge{
+      padding:2px 6px;border-radius:4px;font-size:9px;font-weight:bold;
+    }
+    .badge.ok{background:rgba(0,201,167,0.15);color:var(--teal)}
+    .badge.warn{background:rgba(251,191,36,0.15);color:var(--amber)}
+    .badge.err{background:rgba(248,113,113,0.15);color:var(--red)}
+
+    .refresh-btn{
+      background:rgba(0,201,167,.12);color:var(--teal);border:1px solid var(--teal);
+      padding:4px 10px;border-radius:5px;font-size:11px;cursor:pointer;font-weight:600;
+      transition:all 0.2s;margin-left:auto;
+    }
+    .refresh-btn:hover{
+      background:var(--teal);color:#000;
+    }
+  </style>
+</head>
+<body>
+<header>
+  <span class="logo">📊 Analytics</span>
+  <span style="color:var(--border)">|</span>
+  <span class="htitle">SMD Reel Packing — Production Efficiency Diagnosis</span>
+  
+  <div class="nav-actions">
+    <button class="refresh-btn" onclick="fetchAnalyticsData()">🔄 Sync SQL Data</button>
+    <a href="index1.html" class="nav-link-btn" title="กลับหน้าเดโมหลัก (3D Dashboard)">🏠</a>
+  </div>
+</header>
+
+<main>
+  <div class="dashboard-grid">
+    <div class="chart-card">
+      <div class="card-title">⏱️ Average Step Duration (Spent Time Analysis)</div>
+      <div class="chart-wrap">
+        <canvas id="statesChart"></canvas>
+      </div>
+    </div>
+
+    <div class="chart-card">
+      <div class="card-title">📦 Total Cycle Duration per Production Feed</div>
+      <div class="chart-wrap">
+        <canvas id="cyclesChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="lower-grid">
+    <div class="kpi-flex">
+      <div class="kpi-box">
+        <div class="kpi-val" id="kpiAvg" style="color:var(--purple);">-</div>
+        <div class="kpi-lbl">Mean Cycle Time (เฉลี่ยรวม)</div>
+      </div>
+      <div class="kpi-box">
+        <div class="kpi-val" id="kpiMin" style="color:var(--teal);">-</div>
+        <div class="kpi-lbl">Optimal Cycle Time (เร็วที่สุด)</div>
+      </div>
+      <div class="kpi-box">
+        <div class="kpi-val" id="kpiMax" style="color:var(--amber);">-</div>
+        <div class="kpi-lbl">Maximum Spent Time (ช้าที่สุด)</div>
+      </div>
+    </div>
+
+    <div class="table-card">
+      <div class="card-title">📋 Live SQL Transition Ledger (10 แถวล่าสุด)</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>State Name</th>
+              <th>Spent Duration</th>
+              <th>Control Mode</th>
+              <th>Cycle ID</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="logTableBody">
+            <tr>
+              <td colspan="6" style="text-align:center; color:var(--muted); padding:20px;">รอการเชื่อมต่อซิงค์สายกับหลังบ้าน...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+let ws;
+let statesChart = null;
+let cyclesChart = null;
+
+function initStatesChart() {
+  const ctx = document.getElementById('statesChart').getContext('2d');
+  statesChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Avg Spent Time (Seconds)',
+        data: [],
+        backgroundColor: 'rgba(0, 201, 167, 0.25)',
+        borderColor: '#00c9a7',
+        borderWidth: 1.5,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: { grid: { color: '#2a2d38' }, ticks: { color: '#6b7080', font: { size: 9 } } },
+        y: { grid: { color: '#2a2d38' }, ticks: { color: '#6b7080' }, beginAtZero: true }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+function initCyclesChart() {
+  const ctx = document.getElementById('cyclesChart').getContext('2d');
+  cyclesChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: [],
+      datasets: [{
+        label: 'Total Duration (Seconds)',
+        data: [],
+        backgroundColor: 'rgba(167, 139, 250, 0.25)',
+        borderColor: '#a78bfa',
+        borderWidth: 1.5,
+        borderRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: { grid: { color: '#2a2d38' }, ticks: { color: '#6b7080' } },
+        y: { grid: { color: '#2a2d38' }, ticks: { color: '#6b7080' }, beginAtZero: true }
+      },
+      plugins: { legend: { display: false } }
+    }
+  });
+}
+
+function initWebSocket() {
+  ws = new WebSocket("ws://localhost:8765");
+
+  ws.onopen = () => {
+    console.log("⚡ Analytics WebSocket connected.");
+    fetchAnalyticsData();
+  };
+
+  ws.onmessage = (event) => {
+    const raw = JSON.parse(event.data);
+    
+    // ดักรับท่อข้อความ HISTORY_RESPONSE จากหลังบ้านโดยตรง แล้วนำมาจัดชุดสถิติตรงนี้ทันที
+    if (raw.type === "HISTORY_RESPONSE") {
+      const dbData = raw.data;
+      if (!dbData || dbData.length === 0) {
+        document.getElementById('logTableBody').innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--muted); padding:20px;">ยังไม่มีประวัติบันทึกในระบบดนตาเบสในขณะนี้</td></tr>`;
+        return;
+      }
+
+      // 1. 📊 ประมวลผลกราฟที่ 1: คำนวณเวลาเฉลี่ยรายสเตป FSM พร้อมผูกชื่อบิตสัญญาณตามเงื่อนไขของนิว
+      const stepTotals = {}, stepCounts = {};
+      const cycleDurations = {};
+
+      dbData.forEach(log => {
+        if (log.state) {
+          if (!stepTotals[log.state]) { stepTotals[log.state] = 0; stepCounts[log.state] = 0; }
+          stepTotals[log.state] += Number(log.duration);
+          stepCounts[log.state]++;
+        }
+        if (log.cycle !== undefined) {
+          if (!cycleDurations[log.cycle]) cycleDurations[log.cycle] = 0;
+          cycleDurations[log.cycle] += Number(log.duration);
+        }
+      });
+
+      const stepLabels = Object.keys(stepTotals);
+      const stepAverages = stepLabels.map(lbl => (stepTotals[lbl] / stepCounts[lbl]).toFixed(2));
+
+      const formattedLabels = stepLabels.map(state => {
+         if(state === 'FEED_CARRIER') return `${state} (CH1: 0x01)`;
+         if(state === 'SEAL_PROCESS') return `${state} (CH2: 0x02)`;
+         if(state === 'TAKEUP_REEL')  return `${state} (CH3: 0x04)`;
+         if(state === 'ALARM')        return `${state} (CH4: 0x08)`;
+         return state;
+      });
+
+      statesChart.data.labels = formattedLabels;
+      statesChart.data.datasets[0].data = stepAverages;
+      statesChart.update();
+
+      // 2. 📦 ประมวลผลกราฟที่ 2: อัปเดตเวลาเฉลี่ยรวมสุทธิต่อไซเคิล (Cycle Time Analysis)
+      const cycleIDs = Object.keys(cycleDurations).sort((a, b) => a - b);
+      const cyclesDurations = cycleIDs.map(id => cycleDurations[id]);
+
+      cyclesChart.data.labels = cycleIDs.map(id => `Cycle ${id}`);
+      cyclesChart.data.datasets[0].data = cyclesDurations.map(v => v.toFixed(2));
+      cyclesChart.update();
+
+      // 3. 🎯 คำนวณคณิตศาสตร์พ่นตัวเลขลงกล่อง KPI การ์ดซ้ายล่าง
+      if (cyclesDurations.length > 0) {
+         const avg = cyclesDurations.reduce((a, b) => a + b, 0) / cyclesDurations.length;
+         const min = Math.min(...cyclesDurations);
+         const max = Math.max(...cyclesDurations);
+         
+         document.getElementById('kpiAvg').innerText = `${avg.toFixed(2)}s`;
+         document.getElementById('kpiMin').innerText = `${min.toFixed(2)}s`;
+         document.getElementById('kpiMax').innerText = `${max.toFixed(2)}s`;
+      }
+
+      // 4. 📋 เรนเดอร์ดึงข้อมูลดิบ 10 แถวล่าสุดลงตาราง Ledger ขวาล่าง
+      const historyLogs = [...dbData].slice(-10).reverse();
+      const tbody = document.getElementById('logTableBody');
+      tbody.innerHTML = '';
+      
+      historyLogs.forEach(log => {
+        const tr = document.createElement('tr');
+        let statusBadge = `<span class="badge ok">NORMAL</span>`;
+        if(log.duration > 1.35) statusBadge = `<span class="badge warn">FRICTION</span>`;
+        if(log.state === 'ALARM') statusBadge = `<span class="badge err">TRIPPED</span>`;
+        
+        // กรองการตัดเครื่องหมายจุดแสตมป์เวลาให้สวยงามอ่านง่าย
+        const displayTime = log.time ? log.time.split('.')[0] : '-';
+        
+        tr.innerHTML = `
+          <td style="color:var(--muted)">${displayTime}</td>
+          <td style="color:var(--teal); font-weight:bold;">${log.state}</td>
+          <td>${Number(log.duration).toFixed(2)}s</td>
+          <td style="text-transform:uppercase; color:var(--purple);">${log.mode || 'AUTO'}</td>
+          <td>#${log.cycle}</td>
+          <td>${statusBadge}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+  };
+
+  ws.onclose = () => { setTimeout(initWebSocket, 2000); };
+}
+
+function fetchAnalyticsData() {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    // บังคับยิงคำสั่งกลางขอชุดประวัติดิบจาก SQL ดาต้าเบสโดยตรง
+    ws.send(JSON.stringify({ action: "GET_HISTORY" }));
+  }
+}
+
+// โหลดกราฟและสายสัญญาณ WebSocket หลังหน้ากระดานพร้อมทำงาน
+window.onload = () => {
+  initStatesChart();
+  initCyclesChart();
+  initWebSocket();
+};
+</script>
+</body>
+</html>

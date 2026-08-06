@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Demo — Digital Twin (Perfect Auto & Semi-Auto OK/NG System)</title>
+  <script type="importmap">
+    {"imports":{
+      "three":"https://unpkg.com/three@0.158.0/build/three.module.js",
+      "three/addons/":"https://unpkg.com/three@0.158.0/examples/jsm/"
+    }}
+  </script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0a0c0f;--surface:#111318;--surface2:#1a1d24;--border:#2a2d38;
+      --text:#e8eaf0;--muted:#6b7080;--teal:#00c9a7;--red:#f87171;--amber:#fbbf24;--purple:#a78bfa;
+    }
+    body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;
+      display:grid;grid-template-columns:1fr 320px;grid-template-rows:48px 1fr;height:100vh;overflow:hidden}
+    header{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:0 16px;
+      background:var(--surface);border-bottom:1px solid var(--border)}
+    .logo{font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--teal)}
+    .htitle{font-size:12px;color:var(--muted)}
+    .hdot{width:8px;height:8px;border-radius:50%;background:#4b5563;transition:background .3s}
+    .hdot.run{background:var(--teal);box-shadow:0 0 6px var(--teal)}
+    .hdot.inspect{background:var(--amber);box-shadow:0 0 6px var(--amber)}
+    .hdot.replay-mode{background:var(--purple);box-shadow:0 0 6px var(--purple)}
+    #hstatus{font-size:12px;color:var(--muted);margin-left:6px;margin-right:16px}
+    
+    .nav-actions{
+      display:flex;align-items:center;gap:8px;margin-left:auto;
+    }
+    .nav-link-btn{
+      display:flex;align-items:center;justify-content:center;
+      font-size:15px;color:var(--muted);text-decoration:none;
+      width:32px;height:32px;border-radius:6px;border:1px solid transparent;
+      cursor:pointer;transition:all .2s;
+    }
+    .nav-link-btn:hover{
+      color:var(--teal);background:var(--surface2);border-color:var(--border);
+    }
+    .nav-link-btn.analytics-link:hover{
+      color:var(--amber);
+    }
+
+    #canvas-wrap{position:relative;background:#06080a}
+    canvas{display:block;width:100%;height:100%}
+    
+    /* 🎛️ เลเยอร์หน้าปัด HMI คู่ขยายแนวนอนยาวด้านบน */
+    .overlay-container-row {
+      position: absolute; top: 12px; left: 12px; right: 12px;
+      display: flex; gap: 12px; align-items: flex-start; z-index: 10; pointer-events: none;
+    }
+    
+    .ov-block-left {
+      background: rgba(10,12,15,.92); border: 1px solid var(--border); border-radius: 10px;
+      padding: 12px 18px; min-width: 260px; display: flex; flex-direction: column; pointer-events: auto;
+    }
+    .ov-label{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:2px}
+    .ov-state{font-size:20px;font-weight:700;color:var(--teal);line-height:1.1;transition:color .3s}
+    .ov-state.inspect-mode{color:var(--amber)}
+    .ov-state.replay-title{color:var(--purple)}
+    .ov-state.success-theme{color:var(--teal) !important;}
+    .ov-desc{font-size:11px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+
+    .ov-block-right {
+      background: rgba(10,12,15,.92); border: 1px solid var(--border); border-radius: 10px;
+      padding: 10px 18px; display: flex; align-items: center; gap: 20px; flex: 1; pointer-events: auto;
+    }
+    
+    .ov-input-controls-zone {
+      display: flex; align-items: center; gap: 16px;
+      background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.04);
+      padding: 5px 12px; border-radius: 7px;
+    }
+    .ov-input-group { display:flex; align-items:center; gap:8px; font-size:11px; }
+    .ov-input-lbl { color:var(--muted); font-size:10px; text-transform:uppercase; letter-spacing:0.05em; white-space:nowrap; }
+    .param-input-box { width:52px; background:var(--surface); border:1px solid var(--border); color:var(--teal); border-radius:5px; padding:2px 4px; text-align:center; font-family:monospace; font-size:11px; outline:none; }
+    .param-input-box:focus { border-color:var(--teal); }
+    .ov-slider { width:75px; -webkit-appearance:none; background:var(--border); height:4px; border-radius:2px; outline:none; accent-color:var(--teal); }
+    .ov-sval { font-size:11px; color:var(--teal); font-family:monospace; min-width:18px; }
+
+    .ov-stats-row { display:flex; align-items:center; gap:24px; margin-left:auto; background:rgba(255,255,255,0.02); padding:5px 14px; border-radius:8px; border:1px solid rgba(255,255,255,0.04); }
+    .ov-stat-item { text-align:center; min-width:85px; }
+    .ov-stat-val { font-size:18px; font-weight:700; color:var(--teal); font-family:monospace; }
+    .ov-stat-lbl { font-size:9px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin-top:2px; }
+    .ov-stat-divider { width:1px; height:24px; background:var(--border); }
+
+    .anim-tag{position:absolute;bottom:12px;left:12px;background:rgba(251,191,36,.15);
+      border:1px solid var(--amber);border-radius:7px;padding:5px 12px;font-size:11px;color:var(--amber);z-index:10;display:none}
+    
+    .panel{background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;height:100%;}
+    .ctrl{padding:14px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:8px;flex-shrink:0;}
+    .btn-row{display:flex;gap:6px}
+    .btn{flex:1;padding:8px;border:1px solid var(--border);border-radius:7px;font-size:11px;
+      font-weight:600;cursor:pointer;background:var(--surface2);color:var(--text);transition:all .2s}
+    .btn:hover{border-color:var(--teal);color:var(--text)}
+    .btn.primary{background:rgba(0,201,167,.12);color:var(--teal);border-color:var(--teal)}
+    .btn.danger{background:rgba(248,113,113,.12);color:var(--red);border-color:var(--red)}
+    .btn.active-mode{background:var(--teal);color:#000;border-color:var(--teal)}
+    .btn.ok-btn{background:rgba(0,201,167,0.2);color:var(--teal);border-color:var(--teal);font-size:12px}
+    .btn.ok-btn:hover{background:var(--teal);color:#000}
+    .btn.ng-btn{background:rgba(248,113,113,0.2);color:var(--red);border-color:var(--red);font-size:12px}
+    .btn.ng-btn:hover{background:var(--red);color:#000}
+    .btn:disabled{opacity:.15;cursor:not-allowed;pointer-events:none}
+    
+    .sec-title{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:10px 14px 4px;flex-shrink:0;}
+    
+    .states{flex:1 1 auto;overflow-y:auto;padding:0 8px 8px;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+    .si{display:flex;align-items:center;gap:8px;padding:5px 8px;border-radius:6px;margin-bottom:2px;transition:background .2s}
+    .si.active{background:rgba(0,201,167,.1)}
+    .si.active.inspecting{background:rgba(251,191,36,.12)}
+    .si.visited{background:rgba(255,255,255,.02)}
+    .si-dot{width:7px;height:7px;border-radius:50%;background:#2a2d38;flex-shrink:0;transition:background .3s}
+    .si.active .si-dot{background:var(--teal);box-shadow:0 0 5px var(--teal)}
+    .si.active.inspecting .si-dot{background:var(--amber);box-shadow:0 0 5px var(--amber)}
+    .si.visited .si-dot{background:var(--purple)}
+    .si-name{font-size:10px;font-weight:600;color:var(--muted);min-width:105px;transition:color .2s}
+    .si.active .si-name{color:var(--teal)}
+    .si.active.inspecting .si-name{color:var(--amber)}
+    .si.visited .si-name{color:var(--text)}
+    .si-action{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    
+    #aiWarningBox { padding:10px; margin: 0 14px 10px 14px; border-radius:8px; font-size:11px; font-weight:bold; line-height:1.4; transition:all 0.3s; }
+    .box-alarm-theme { background:rgba(248,113,113,0.15) !important; border:1px solid var(--red) !important; color:var(--red) !important; }
+    .box-success-theme { background:rgba(0,201,167,0.12) !important; border:1px solid var(--teal) !important; color:var(--teal) !important; box-shadow: 0 0 10px rgba(0,201,167,0.2); }
+
+    .log-wrap{border-top:1px solid var(--border);height:145px;display:flex;flex-direction:column;flex-shrink:0}
+    .log-hdr{padding:6px 14px;display:flex;justify-content:space-between;align-items:center}
+    .log-clr{font-size:10px;color:var(--muted);cursor:pointer}.log-clr:hover{color:var(--text)}
+    .log-body{flex:1;overflow-y:auto;padding:0 14px 8px;font-family:monospace;font-size:10px;
+      line-height:1.7;scrollbar-width:thin;scrollbar-color:var(--border) transparent}
+    .le .ts{color:#4b5563;margin-right:5px}
+    .le.info .ev{color:var(--teal)}.le.warn .ev{color:var(--amber)}.le.err .ev{color:var(--red)}.le.sys .ev{color:var(--purple)}
+
+    .tm-panel { background:var(--surface2); border:1px solid var(--border); padding:10px; border-radius:8px; display:flex; flex-direction:column; gap:6px; margin: 0 14px 10px 14px; flex-shrink:0;}
+    .tm-tabs { display:flex; gap:4px; }
+    .tm-btn { flex:1; padding:6px; font-size:10px; font-weight:bold; background:var(--surface); border:1px solid var(--border); color:var(--muted); border-radius:5px; cursor:pointer; transition:all 0.2s; }
+    .tm-btn.active-live { background:rgba(0,201,167,0.15); color:var(--teal); border-color:var(--teal); }
+    .tm-btn.active-rep { background:rgba(167,139,250,0.15); color:var(--purple); border-color:var(--purple); }
+    .tm-slider { width:100%; margin:4px 0; -webkit-appearance:none; background:var(--border); height:4px; border-radius:2px; outline:none; }
+    .tm-slider::-webkit-slider-thumb { -webkit-appearance:none; width:12px; height:12px; border-radius:50%; background:var(--purple); cursor:pointer; }
+  </style>
+</head>
+<body>
+<header>
+  <span class="logo">Demo</span>
+  <span style="color:var(--border)">|</span>
+  <span class="htitle">SMD Reel Packing — Dual Mode Control Dashboard</span>
+  
+  <div class="nav-actions">
+    <a href="analytics.html" class="nav-link-btn analytics-link" title="เปิดหน้าสถิติวิเคราะห์ (Production Analytics)">📊</a>
+    <a href="index1.html" class="nav-link-btn" title="กลับหน้าหลัก (Home)">🏠</a>
+  </div>
+  
+  <div class="hdot" id="hdot"></div>
+  <span id="hstatus">Idle</span>
+</header>
+
+<div id="canvas-wrap">
+  <canvas id="c"></canvas>
+  
+  <div class="overlay-container-row">
+    <div class="ov-block-left">
+      <div class="ov-label" id="ovLabel">Current State</div>
+      <div class="ov-state" id="ovState">READY</div>
+      <div class="ov-desc" id="ovDesc">Waiting for Start</div>
+    </div>
+    
+    <div class="ov-block-right">
+      <div class="ov-input-controls-zone">
+        <div class="ov-input-group">
+          <span class="ov-input-lbl">Target Pcs:</span>
+          <input type="number" id="paramTarget" class="param-input-box" value="200" min="1" max="9999" onchange="updateParameters()">
+        </div>
+        <div style="width:1px; height:16px; background:var(--border);"></div>
+        <div class="ov-input-group">
+          <span class="ov-input-lbl">Pitch:</span>
+          <input type="number" id="paramPitch" class="param-input-box" value="24" min="1" max="99" onchange="updateParameters()">
+          <span class="ov-input-lbl">mm</span>
+        </div>
+        <div style="width:1px; height:16px; background:var(--border);"></div>
+        <div class="ov-input-group">
+          <span class="ov-input-lbl">Speed:</span>
+          <input type="range" id="spd" class="ov-slider" min="0.5" max="3" step="0.5" value="1" oninput="updateSpeedSlider(this.value)">
+          <span class="ov-sval" id="sval">1×</span>
+        </div>
+      </div>
+      
+      <div class="ov-stats-row">
+        <div class="ov-stat-item">
+          <div class="ov-stat-val" id="cCycles">0</div>
+          <div class="ov-stat-lbl">Feeds (Cycles)</div>
+        </div>
+        <div class="ov-stat-divider"></div>
+        <div class="ov-stat-item">
+          <div class="ov-stat-val" id="cPieces" style="color:var(--purple);">0 / 200</div>
+          <div class="ov-stat-lbl">Parts Target Counter</div>
+        </div>
+        <div class="ov-stat-divider"></div>
+        <div class="ov-stat-item">
+          <div class="ov-stat-val" id="cTemperature" style="color:var(--amber);">190°C</div>
+          <div class="ov-stat-lbl">Heater Temperature</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="anim-tag" id="animTag">⟳ Animating</div>
+</div>
+
+<div class="panel">
+  <div class="sec-title" style="padding-top:14px">⏳ Digital Twin Time Machine</div>
+  <div class="tm-panel">
+    <div class="tm-tabs">
+      <button id="tmLiveBtn" class="tm-btn active-live" onclick="switchTwinMode('LIVE')">🔴 LIVE MONITOR</button>
+      <button id="tmRepBtn" class="tm-btn" onclick="switchTwinMode('REPLAY')">⏳ REPLAY SQL</button>
+    </div>
+    <div id="tmSubPanel" style="display:none; flex-direction:column; gap:4px;">
+      <button class="btn" style="padding:4px; font-size:10px;" onclick="loadSqlHistory()">🔄 Load Log from SQL</button>
+      <input type="range" id="tmSlider" class="tm-slider" min="0" max="0" value="0" oninput="slideHistory(this.value)">
+      <div style="display:flex; justify-content:space-between; font-size:9px; color:var(--muted); font-family:monospace;">
+        <span id="tmStartT">-</span>
+        <span id="tmEndT">-</span>
+      </div>
+    </div>
+  </div>
+
+  <div id="aiWarningBox" style="display:none;"></div>
+
+  <div class="ctrl">
+    <div class="btn-row" style="margin-bottom: 2px;">
+      <button class="btn active-mode" id="btnModeAuto" onclick="switchMode('auto')">🤖 Auto</button>
+      <button class="btn" id="btnModeSemi" onclick="switchMode('semi')">🕹️ Semi-Auto</button>
+    </div>
+    
+    <div class="btn-row">
+      <button class="btn primary" id="btnStart" onclick="fsmStart()">▶ Start</button>
+      <button class="btn danger" id="btnStop" onclick="fsmStop()" disabled>⏸ Stop</button>
+      <button class="btn" id="btnReset" style="background:rgba(251,191,36,0.12); color:var(--amber); border-color:var(--amber);" onclick="fsmReset()">🔄 Reset</button>
+      <button class="btn" id="btnEStop" style="background:rgba(239,68,68,0.25); color:var(--red); border-color:var(--red); font-weight:bold;" onclick="fsmEStop()">🚨 E-STOP</button>
+    </div>
+    
+    <div class="sec-title" style="padding:4px 0 2px 0; font-size:9px">Inspection Decision (Semi-Auto Mode)</div>
+    <div class="btn-row">
+      <button class="btn ok-btn" id="btnOK" onclick="fsmDecision(true)" disabled>👍 OK</button>
+      <button class="btn ng-btn" id="btnNG" onclick="fsmDecision(false)" disabled>👎 NG</button>
+    </div>
+  </div>
+  
+  <div class="sec-title">FSM Flow States</div>
+  <div class="states" id="statesList"></div>
+  
+  <div class="log-wrap">
+    <div class="log-hdr">
+      <span class="sec-title" style="padding:0">Event Log</span>
+      <span class="log-clr" onclick="document.getElementById('logBody').innerHTML=''">Clear</span>
+    </div>
+    <div class="log-body" id="logBody"></div>
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const PART_NAMES = {
+  carrier_tape: 'Cerrier', 
+  roller_feed:  'Roll_1', 
+  feeder_block: 'Feed_Cerrier',
+  roller_blue:  'Roll_2', 
+  sealing_head: 'Sealing', 
+};
+
+const STATES = [
+  {id:'LOAD_CARRIER',          action:'โหลด Carrier & Cover Tape เข้าที่เฉยๆ', isCheck:false},
+  {id:'INDEX_CARRIER',         action:'จัด Carrier & Cover ให้อยู่ในตำแหน่งเพื่อจะเริ่มการทำงานเฉย', isCheck:false},
+  {id:'POWER_ON',              action:'เริ่มเปิดเครื่อง ทุกอย่างจะถูกเปิดเพื่อสแตนบายเฉย', isCheck:false},
+  {id:'SET_PARAMS',            action:'Set ค่าต่างๆ พารามิเตอร์ของระบบ', isCheck:false},
+  {id:'SENSOR_CHECK_CARRIER',   action:'[CHECK] เซนเซอร์ตรวจสอบว่า Carrier อยู่ตำแหน่งจริงมั้ย', isCheck:true},
+  {id:'READY',                 action:'ถ้ามี Carrier ก็เริ่มต้นระบบได้เลย', isCheck:false},
+  {id:'LOAD_PART',             action:'มีการใส่ชิ้นส่วนลงใน Carrier', isCheck:false},
+  {id:'VISION',                action:'[CHECK] พอใส่เสร็จกล้อง 1 ก็จะตรวจสอบความถูกต้องของชิ้นงาน', isCheck:true},
+  {id:'CHECK_TEMP',            action:'[CHECK] ถ้าถูกแล้วก็จะทำการเช็คอุณหภูมิว่าถึงค่าที่กำหนดยัง', isCheck:true},
+  {id:'FEED_CARRIER',          action:'Carrier ขยับเลื่อน และ Roll_1 หมุนตอนเลื่อนนี่แหละ', isCheck:false},
+  {id:'COUNT_PROCESS',         action:'จะมีการนับชิ้นงานโดยกล้อง 1 และ Encoder ที่นับตามระยะพิตช์', isCheck:false},
+  {id:'COUNT_CHECK',           action:'[CHECK] ตรวจสอบว่าค่านับตรงกับที่เช็อมั้ย', isCheck:true},
+  {id:'COUNT_ACCUMULATE',      action:'ถ้าตรงก็นับบวกสะสมขึ้นเพิ่ม 1 ชิ้น', isCheck:false},
+  {id:'SEAL_PROCESS',          action:'หัวซีลความร้อน (Seal) สับกดลงและยกตัวคืนที่สำเร็จ', isCheck:false},
+  {id:'VISION_QC',             action:'[CHECK] เช็คความถูกต้องของการซีลว่า Seal ดีมั้ย', isCheck:true},
+  {id:'TAKEUP_REEL',           action:'ถ้าดี Roll_2 ก็จะหมุนม้วนเก็บชิ้นงาน', isCheck:false},
+  {id:'ALARM',                 action:'🚨 ALARM / ระบบตรวจพบจุดขัดข้อง สั่งเบรกเครื่องจักรหยุดฉุกเฉิน!', isCheck:false}
+];
+
+window.speedMul = 1;
+
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({canvas, antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x06080a);
+const camera = new THREE.PerspectiveCamera(45,1,0.01,1000);
+const controls = new OrbitControls(camera, canvas);
+controls.enableDamping = true;
+
+scene.add(new THREE.AmbientLight(0xffffff,1.2));
+const dl = new THREE.DirectionalLight(0xffffff,1.5); dl.position.set(4,6,4); scene.add(dl);
+
+function resize(){
+  const p=canvas.parentElement;
+  renderer.setSize(p.clientWidth,p.clientHeight,false);
+  camera.aspect=p.clientWidth/p.clientHeight;
+  camera.updateProjectionMatrix();
+}
+resize();
+new ResizeObserver(resize).observe(canvas.parentElement);
+
+const meshMap={}, origPos={}, origMat={};
+function reg(role,mesh){
+  meshMap[role]=mesh;
+  origPos[role]=mesh.position.clone();
+  mesh._origRot = mesh.rotation.clone(); 
+}
+
+const tweens=[];
+function twCustomKey(roleKey,targetMesh,fromPos,toPos,durSec,onDone=null){
+  const i=tweens.findIndex(t=>t.role===roleKey); if(i>-1) tweens.splice(i,1);
+  tweens.push({role:roleKey,mesh:targetMesh,from:fromPos.clone(),to:toPos.clone(),dur:durSec,elapsed:0,onDone});
+  document.getElementById('animTag').style.display='block';
+}
+
+function twRot(role,deltaRot,durSec,axis='x'){
+  const mesh=meshMap[role]; if(!mesh) return;
+  const key=role+'_r';
+  const i=tweens.findIndex(t=>t.role===key); if(i>-1) tweens.splice(i,1);
+  tweens.push({role:key,mesh,fromRot:mesh.rotation[axis],toRot:mesh.rotation[axis]+deltaRot,isRot:true,rotAxis:axis,dur:durSec,elapsed:0});
+  document.getElementById('animTag').style.display='block';
+}
+
+function ret(role,durSec=0.18){
+  const mesh=meshMap[role]; if(!mesh||!origPos[role]) return;
+  const i=tweens.findIndex(t=>t.role===role); if(i>-1) tweens.splice(i,1);
+  tweens.push({role,mesh,from:mesh.position.clone(),to:origPos[role].clone(),dur:durSec,elapsed:0});
+}
+function ease(t){return t<0.5?2*t*t:-1+(4-2*t)*t;}
+
+function playAnim(id){
+  const S = speedMul;
+  const sealMesh = meshMap['sealing_head'];
+  const tapeMesh = meshMap['carrier_tape'];
+
+  switch(id){
+    case 'FEED_CARRIER':
+      twRot('roller_feed', -Math.PI * 2.5, 1.2/S, 'x'); 
+      twRot('feeder_block', -Math.PI * 2.5, 1.2/S, 'z'); 
+
+      if(tapeMesh && origPos['carrier_tape']) {
+        tapeMesh.position.copy(origPos['carrier_tape']);
+        const nextTarget = origPos['carrier_tape'].clone().add(new THREE.Vector3(0, 0, 2));
+        twCustomKey('carrier_move', tapeMesh, tapeMesh.position, nextTarget, 1.2/S, () => {
+          tapeMesh.position.copy(origPos['carrier_tape']);
+        });
+      }
+      break;
+
+    case 'SEAL_PROCESS':
+      if(sealMesh && origPos['sealing_head']){
+        const downTarget = origPos['sealing_head'].clone().add(new THREE.Vector3(0, -0.5, 0));
+        twCustomKey('sealing_down', sealMesh, sealMesh.position, downTarget, 0.6/S, () => {
+           twCustomKey('sealing_up', sealMesh, sealMesh.position, origPos['sealing_head'], 0.6/S);
+        });
+      }
+      break;
+
+    case 'TAKEUP_REEL':
+      twRot('roller_blue', Math.PI * 2.5, 1.0/S, 'x'); 
+      break;
+
+    case 'LOAD_CARRIER':
+      ret('carrier_tape', 0.25/S); 
+      ret('sealing_head', 0.25/S);
+      break;
+  }
+}
+
+// 📦 บล็อกจับคู่ป้ายรายชื่อ STATES ให้แสดงผลได้ถูกต้องไร้บั๊กจอมืดด้านขวา
+const ctrlPanelStates = document.getElementById('statesList');
+if (ctrlPanelStates) {
+  STATES.forEach(s => {
+    const el = document.createElement('div');
+    el.className = 'si';
+    el.id = 'si_' + s.id;
+    el.innerHTML = `<div class="si-dot"></div><span class="si-name">${s.id}</span><span class="si-action">${s.action}</span>`;
+    ctrlPanelStates.appendChild(el);
+  });
+}
+
+window.addLog = function(msg,type='info'){
+  const b=document.getElementById('logBody'); const ts=new Date().toTimeString().slice(0,8);
+  const el=document.createElement('div'); el.className='le '+type;
+  el.innerHTML=`<span class="ts">${ts}</span><span class="ev">${msg}</span>`;
+  b.appendChild(el); b.scrollTop=b.scrollHeight;
+}
+
+let current='READY', running=false, isSemiAutoMode = false, stepAllowed = false, cycles=0;
+
+window.switchMode = function(mode) {
+  if (twinAppMode === "REPLAY") return; 
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ action: "MODE", mode: mode })); 
+  }
+}
+
+window.updateSpeedSlider = function(val) {
+  speedMul = +val;
+  document.getElementById('sval').textContent = val + '×';
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ action: "SPEED", value: speedMul }));
+  }
+}
+
+window.fsmDecision = function(isPassed) {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ action: "DECISION", value: isPassed })); 
+  }
+}
+
+window.fsmStart = function(){ 
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ action: "START" })); 
+  }
+};
+
+window.fsmStop = function(){ 
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ action: "STOP" })); 
+  }
+};
+
+window.fsmEStop = function() {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ action: "ESTOP" })); 
+  }
+  running = false;
+  document.getElementById('btnStart').disabled = true;
+  document.getElementById('btnStop').disabled = true;
+  document.getElementById('btnOK').disabled = true;
+  document.getElementById('btnNG').disabled = true;
+  
+  document.getElementById('hdot').className = 'hdot';
+  document.getElementById('hstatus').textContent = '🚨 EMERGENCY STOP ENGAGED (SOFT INTERLOCK)';
+  
+  document.getElementById('ovLabel').textContent = "🚨 CRITICAL SYSTEM LOCK";
+  document.getElementById('ovState').textContent = 'ALARM (E-STOP)';
+  document.getElementById('ovState').classList.remove('success-theme');
+  document.getElementById('ovDesc').textContent = 'Soft Interlock Engaged: Output safety isolation active.';
+  addLog("🚨 [ESTOP TRIGGERED] Safety barrier engaged!", "err");
+};
+
+window.fsmReset = function(){
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ action: "RESET" })); 
+  }
+  tweens.length = 0;
+  Object.keys(meshMap).forEach(role => {
+    const m = meshMap[role]; if (m && origPos[role]) { m.position.copy(origPos[role]); if (m._origRot) m.rotation.copy(m._origRot); }
+  });
+  
+  current = 'LOAD_CARRIER'; 
+  document.getElementById('ovState').textContent = 'LOAD_CARRIER';
+  document.getElementById('ovState').classList.remove('success-theme');
+  document.getElementById('ovDesc').textContent = 'โหลด Carrier & Cover Tape เข้าที่เฉยๆ';
+  document.getElementById("aiWarningBox").style.display = "none";
+  addLog("🔄 Reset Command Sent: System standing by.", "sys");
+};
+
+window.updateParameters = () => {
+  const target = document.getElementById('paramTarget').value;
+  const pitch = document.getElementById('paramPitch').value;
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ action: "SET_PARAMS", target_pieces: target, pitch: pitch }));
+  }
+};
+
+let ws;
+let twinAppMode = "LIVE";
+let historicalTimeline = [];
+
+window.switchTwinMode = function(targetMode) {
+  mixTwinAppMode(targetMode);
+};
+
+function mixTwinAppMode(targetMode) {
+  twinAppMode = targetMode;
+  const liveBtn = document.getElementById("tmLiveBtn");
+  const repBtn = document.getElementById("tmRepBtn");
+  const subPanel = document.getElementById("tmSubPanel");
+  const hdot = document.getElementById("hdot");
+  const hstatus = document.getElementById("hstatus");
+
+  if (targetMode === "LIVE") {
+    liveBtn.className = "tm-btn active-live";
+    repBtn.className = "tm-btn";
+    subPanel.style.display = "none";
+    document.getElementById('ovLabel').textContent = "Current State";
+    document.getElementById('ovState').textContent = current;
+    document.getElementById('ovState').classList.remove('replay-title');
+    if(!running) { hdot.className = 'hdot'; hstatus.textContent = 'Idle'; }
+    else { hdot.className = 'hdot run'; hstatus.textContent = 'Running'; }
+    addLog("🟢 เปิดหน้าจอ Live Monitor ลิงค์พิกัดปัจจุบัน", "ok");
+  } else {
+    liveBtn.className = "tm-btn";
+    repBtn.className = "tm-btn active-rep";
+    subPanel.style.display = "flex";
+    hdot.className = "hdot replay-mode";
+    hstatus.textContent = "Replay Mode Active";
+    document.getElementById('ovLabel').textContent = "⏳ Time Machine Replay";
+    document.getElementById('ovState').classList.add('replay-title');
+    addLog("⏳ เปิดระบบ Time Machine ค้นหาประวัติ SQL", "sys");
+    loadSqlHistory();
+  }
+}
+
+// ⏳ ขอประวัติ FSM จากฐานข้อมูล SQLite ผ่าน WebSocket (ตอบกลับมาเป็น HISTORY_RESPONSE)
+window.loadSqlHistory = function() {
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ action: "GET_HISTORY" }));
+    addLog("🔎 กำลังดึงประวัติจาก SQL ดาต้าเบส...", "sys");
+  } else {
+    addLog("⚠️ ยังเชื่อมต่อหลังบ้านไม่สำเร็จ ดึงประวัติไม่ได้", "warn");
+  }
+};
+
+// ⏳ เลื่อนไทม์ไลน์ย้อนดูสเตปในอดีตตามตำแหน่ง slider
+window.slideHistory = function(idx) {
+  if (historicalTimeline.length === 0) return;
+  const i = Math.max(0, Math.min(+idx, historicalTimeline.length - 1));
+  const rec = historicalTimeline[i];
+  const slider = document.getElementById('tmSlider');
+  if (slider && +slider.value !== i) slider.value = i;
+
+  document.getElementById('ovState').textContent = rec.state;
+  document.getElementById('ovDesc').textContent =
+    `🕓 ${rec.time} | ⏱ ${(+rec.duration).toFixed(2)}s | Cycle ${rec.cycle} | ${String(rec.mode).toUpperCase()}`;
+
+  document.querySelectorAll('.si.active').forEach(e => e.classList.remove('active', 'inspecting'));
+  const el = document.getElementById('si_' + rec.state);
+  if (el) el.classList.add('active');
+  playAnim(rec.state);
+};
+
+function initWebSocket() {
+  ws = new WebSocket("ws://localhost:8765");
+  ws.onopen = () => { addLog("⚡ เชื่อมต่อเซิร์ฟเวอร์หลังบ้านสำเร็จ", "ok"); };
+  ws.onmessage = (event) => {
+    const raw = JSON.parse(event.data);
+    if (raw.type === "LIVE_SYNC" && twinAppMode === "LIVE") {
+      const sys = raw.system;
+      if(document.getElementById('cCycles')) document.getElementById('cCycles').textContent = sys.cycles;
+      if(document.getElementById('cPieces')) document.getElementById('cPieces').textContent = `${sys.pieces_count} / ${sys.target_pieces}`;
+      if(document.getElementById('cTemperature')) document.getElementById('cTemperature').textContent = `${sys.current_temp}°C`;
+      
+      const tempEl = document.getElementById('cTemperature');
+      if (tempEl) {
+        if (sys.current_temp > 200) { tempEl.style.color = 'var(--red)'; }
+        else if (sys.current_temp >= 189 && sys.current_temp <= 191) { tempEl.style.color = 'var(--teal)'; }
+        else { tempEl.style.color = 'var(--amber)'; }
+      }
+
+      // 🔄 ซิงค์ค่าพารามิเตอร์กลับเข้าช่องกรอก (เฉพาะตอนไม่ได้โฟกัสพิมพ์อยู่)
+      // เพื่อให้ค่าที่ตั้งจากแป้นพิมพ์บนจอ HMI เด้งมาแสดงบนเว็บแบบ Real-time
+      const tgtInput = document.getElementById('paramTarget');
+      if (tgtInput && document.activeElement !== tgtInput) tgtInput.value = sys.target_pieces;
+      const pitchInput = document.getElementById('paramPitch');
+      if (pitchInput && document.activeElement !== pitchInput && sys.pitch !== undefined) pitchInput.value = sys.pitch;
+
+      cycles = sys.cycles; isSemiAutoMode = (sys.mode === 'semi'); running = sys.running; stepAllowed = sys.step_allowed;
+      if(document.getElementById('btnModeSemi')) document.getElementById('btnModeSemi').classList.toggle('active-mode', isSemiAutoMode);
+      if(document.getElementById('btnModeAuto')) document.getElementById('btnModeAuto').classList.toggle('active-mode', !isSemiAutoMode);
+      if(document.getElementById('btnOK')) document.getElementById('btnOK').disabled = !(isSemiAutoMode && stepAllowed);
+      if(document.getElementById('btnNG')) document.getElementById('btnNG').disabled = !(isSemiAutoMode && stepAllowed);
+      if (sys.current_state !== 'ALARM') {
+         if(document.getElementById('btnStart')) document.getElementById('btnStart').disabled = running;
+         if(document.getElementById('btnStop')) document.getElementById('btnStop').disabled = !running;
+      }
+
+      const warningBox = document.getElementById("aiWarningBox");
+      const ovStateEl = document.getElementById('ovState');
+      if (warningBox) {
+        if (sys.predictive_warning && sys.predictive_warning !== "") {
+            warningBox.style.display = "block"; warningBox.innerText = sys.predictive_warning;
+            if (sys.predictive_warning.includes("SUCCESS") || sys.pieces_count >= sys.target_pieces) {
+                warningBox.className = "box-success-theme";
+                if(ovStateEl) ovStateEl.classList.add('success-theme');
+            } else {
+                warningBox.className = "box-alarm-theme";
+                if(ovStateEl) ovStateEl.classList.remove('success-theme');
+            }
+        } else {
+            warningBox.style.display = "none";
+            if(ovStateEl) ovStateEl.classList.remove('success-theme');
+        }
+      }
+
+      if (current !== sys.current_state) {
+        document.querySelectorAll('.si.active').forEach(e => { e.classList.remove('active', 'inspecting', 'visited'); });
+        current = sys.current_state;
+        const el = document.getElementById('si_' + current);
+        const s = STATES.find(x => x.id === current);
+        if (el) { el.classList.remove('visited'); el.classList.add('active'); if (s && s.isCheck && isSemiAutoMode) el.classList.add('inspecting'); }
+        if (current === 'ALARM') { if(document.getElementById('ovLabel')) document.getElementById('ovLabel').textContent = "🚨 CRITICAL SYSTEM LOCK"; }
+        else { if(document.getElementById('ovLabel')) document.getElementById('ovLabel').textContent = "Current State"; }
+        if(document.getElementById('ovState')) document.getElementById('ovState').textContent = current; 
+        if(document.getElementById('ovDesc'))  document.getElementById('ovDesc').textContent = s?.action || '';
+        if(document.getElementById('ovState')) document.getElementById('ovState').classList.toggle('inspect-mode', (s?.isCheck && isSemiAutoMode));
+
+        const dot = document.getElementById('hdot'), hs = document.getElementById('hstatus');
+        if (dot && hs) {
+          if (current === 'ALARM') { dot.className = 'hdot'; hs.textContent = sys.predictive_warning ? sys.predictive_warning : '🚨 SYSTEM TRIPPED / ALARM ACTIVE'; }
+          else if (sys.pieces_count >= sys.target_pieces) { dot.className = 'hdot run'; hs.textContent = '🏁 Batch Completed!'; }
+          else if (!running) { dot.className = 'hdot'; hs.textContent = 'Idle'; }
+          else if (s && s.isCheck && isSemiAutoMode) { dot.className = 'hdot inspect'; hs.textContent = 'Awaiting Decision...'; }
+          else { dot.className = 'hdot run'; hs.textContent = 'Running'; }
+        }
+        playAnim(current); addLog('→ ' + current, 'info');
+      }
+    } 
+    else if (raw.type === "HISTORY_RESPONSE") {
+      historicalTimeline = raw.data; if (historicalTimeline.length === 0) return;
+      const slider = document.getElementById("tmSlider"); if(slider) { slider.max = historicalTimeline.length - 1; slider.value = 0; }
+      if(document.getElementById("tmStartT")) document.getElementById("tmStartT").innerText = historicalTimeline[0].time.split(" ")[1];
+      if(document.getElementById("tmEndT"))   document.getElementById("tmEndT").innerText = historicalTimeline[historicalTimeline.length - 1].time.split(" ")[1];
+      addLog(`📜 โหลดประวัติ ${historicalTimeline.length} แถวจาก SQL ดาต้าเบส`, "ok");
+      if(twinAppMode === "REPLAY") slideHistory(0);
+    }
+  };
+  ws.onclose = () => { setTimeout(initWebSocket, 2000); };
+}
+
+// ── WebGL Engine Initializer ──
+const clock = new THREE.Clock();
+new GLTFLoader().load('export/Machine.glb', gltf=>{
+  const model = gltf.scene; scene.add(model);
+  model.traverse(obj => { if(obj.isMesh) obj.castShadow = obj.receiveShadow = true; });
+  const box=new THREE.Box3().setFromObject(model);
+  const center=box.getCenter(new THREE.Vector3());
+  const size=box.getSize(new THREE.Vector3()).length();
+  camera.position.set(center.x + size*0.7, center.y + size*0.6, size*0.9);
+  controls.target.copy(center); controls.update();
+  
+  let feederGroup = null;
+  model.traverse(obj => {
+    if (obj.name === PART_NAMES.carrier_tape) reg('carrier_tape', obj);
+    else if (obj.name === PART_NAMES.sealing_head) reg('sealing_head', obj);
+    else if (obj.name === PART_NAMES.roller_feed) {
+      obj.geometry.computeBoundingBox();
+      const localCenter = new THREE.Vector3(); obj.geometry.boundingBox.getCenter(localCenter);
+      obj.geometry.center(); obj.updateMatrixWorld(true); localCenter.applyMatrix4(obj.matrixWorld);
+      obj.position.copy(localCenter); reg('roller_feed', obj);
+    } 
+    else if (obj.name === PART_NAMES.roller_blue) {
+      if(obj.isMesh) {
+        obj.geometry.computeBoundingBox();
+        const blueCenter = new THREE.Vector3(); obj.geometry.boundingBox.getCenter(blueCenter);
+        obj.geometry.center(); blueCenter.applyMatrix4(obj.matrixWorld);
+        obj.position.copy(blueCenter); reg('roller_blue', obj);
+      } else { reg('roller_blue', obj); }
+    }
+    else if (obj.name === PART_NAMES.feeder_block) feederGroup = obj;
+  });
+  
+  if(feederGroup) {
+    feederGroup.updateMatrixWorld(true);
+    const worldPos = new THREE.Vector3(), worldQuat = new THREE.Quaternion(), worldScale = new THREE.Vector3();
+    feederGroup.matrixWorld.decompose(worldPos, worldQuat, worldScale);
+    scene.add(feederGroup); feederGroup.position.copy(worldPos); feederGroup.quaternion.copy(worldQuat); feederGroup.scale.copy(worldScale);
+    let innerMesh = null; feederGroup.traverse(child => { if(child.isMesh && !innerMesh) innerMesh = child; });
+    if(innerMesh && innerMesh.geometry) {
+      innerMesh.geometry.computeBoundingBox();
+      const innerCenter = new THREE.Vector3(); innerMesh.geometry.boundingBox.getCenter(innerCenter);
+      innerMesh.geometry.center(); innerMesh.position.add(innerCenter); reg('feeder_block', innerMesh); 
+    } else { reg('feeder_block', feederGroup); }
+  }
+  addLog("🤖 3D Machine Model Engine Ready", "ok");
+},null,err=>addLog('GLB error: '+err.message,'err'));
+
+function animate(){
+  requestAnimationFrame(animate); const dt=clock.getDelta();
+  for(let i=tweens.length-1;i>=0;i--){
+    const t=tweens[i]; t.elapsed+=dt; const p=Math.min(t.elapsed/t.dur,1), ep=ease(p);
+    if(t.isRot) t.mesh.rotation[t.rotAxis] = t.fromRot + (t.toRot - t.fromRot) * ep;
+    else t.mesh.position.lerpVectors(t.from,t.to,ep);
+    if(p>=1){ if(t.onDone) t.onDone(); tweens.splice(i,1); }
+  }
+  if(tweens.length===0) document.getElementById('animTag').style.display='none';
+  controls.update(); renderer.render(scene,camera);
+}
+requestAnimationFrame(animate); 
+initWebSocket();
+</script>
+</body>
+</html>
