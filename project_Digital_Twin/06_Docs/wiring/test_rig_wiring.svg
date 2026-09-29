@@ -1,0 +1,404 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1010" viewBox="0 0 1600 1010">
+<rect width="1600" height="1010" fill="#ffffff"/>
+<text x="40" y="48" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="26" fill="#111" text-anchor="start" font-weight="bold">ผังต่อสาย (Wiring) ชุดทดสอบ Digital Twin — เครื่อง Taping</text>
+<text x="40" y="76" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="15" fill="#555" text-anchor="start" font-weight="normal">บอร์ด I/O (Modbus TCP) · โซลินอยด์กระบอกซีล · มอเตอร์ feed  —  ตามที่บันทึกใน repo ณ 29 ก.ย. 2026</text>
+<path d="M120 261 V330 H92" fill="none" stroke="#8d4a1f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M160 261 V348 H92" fill="none" stroke="#1f5fbf" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M370 261 V440 H1440" fill="none" stroke="#8d4a1f" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M250 261 V462 H1440" fill="none" stroke="#1f5fbf" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M540 388 V440" fill="none" stroke="#8d4a1f" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M568 388 V462" fill="none" stroke="#1f5fbf" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="540" cy="440" r="5.5" fill="#8d4a1f"/>
+<circle cx="568" cy="462" r="5.5" fill="#1f5fbf"/>
+<path d="M1030 388 V410 H785 V540" fill="none" stroke="#ef7d00" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M770 540 V462" fill="none" stroke="#1f5fbf" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="770" cy="462" r="5.5" fill="#1f5fbf"/>
+<path d="M1056 388 V418 H935 V540" fill="none" stroke="#ef7d00" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M920 540 V462" fill="none" stroke="#1f5fbf" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="920" cy="462" r="5.5" fill="#1f5fbf"/>
+<path d="M1082 388 V426 H1085 V540" fill="none" stroke="#ef7d00" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1070 540 V462" fill="none" stroke="#1f5fbf" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1070" cy="462" r="5.5" fill="#1f5fbf"/>
+<path d="M1134 388 V500 H1237 V540" fill="none" stroke="#ef7d00" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1263 540 V462" fill="none" stroke="#1f5fbf" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="1263" cy="462" r="5.5" fill="#1f5fbf"/>
+<path d="M1400 540 V440" fill="none" stroke="#8d4a1f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 6"/>
+<path d="M1426 540 V462" fill="none" stroke="#1f5fbf" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 6"/>
+<text x="1436" y="506" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#d32f2f" text-anchor="start" font-weight="bold">ไฟเลี้ยง ?</text>
+<path d="M1260 760 V814 H1472" fill="none" stroke="#5a5a5a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1286 760 V806 H1472" fill="none" stroke="#5a5a5a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1312 760 V798 H1472" fill="none" stroke="#5a5a5a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1338 760 V790 H1472" fill="none" stroke="#5a5a5a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1525 882 V922" fill="none" stroke="#d32f2f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="6 5"/>
+<text x="1525" y="942" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="12" fill="#d32f2f" text-anchor="middle" font-weight="normal">สาย encoder ยังไม่ต่อ</text>
+<path d="M790 675 H1190" fill="none" stroke="#9fd0ef" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M860 675 V634" fill="none" stroke="#9fd0ef" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M815 634 V706" fill="none" stroke="#9fd0ef" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M840 634 V695 H875 V860 H855" fill="none" stroke="#9fd0ef" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1010 675 V634" fill="none" stroke="#9fd0ef" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M965 634 V706" fill="none" stroke="#9fd0ef" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M990 634 V695 H1025 V860 H1005" fill="none" stroke="#9fd0ef" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1160 675 V634" fill="none" stroke="#9fd0ef" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1115 634 V706" fill="none" stroke="#9fd0ef" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1140 634 V695 H1175 V860 H1155" fill="none" stroke="#9fd0ef" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1300 170 H1325 V238 H1350" fill="none" stroke="#8a8f98" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1420 247 V300" fill="none" stroke="#8a8f98" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M1520 247 V300" fill="none" stroke="#8a8f98" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<rect x="46" y="318" width="46" height="42" rx="6" fill="#f2f2f2" stroke="#444" stroke-width="1.5"/>
+<rect x="30" y="326" width="16" height="6" fill="#999"/><rect x="30" y="346" width="16" height="6" fill="#999"/>
+<text x="62" y="382" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="12" fill="#444" text-anchor="middle" font-weight="normal">AC 220V</text>
+<rect x="90" y="120" width="320" height="160" rx="6" fill="#d9dde1" stroke="#555" stroke-width="1.5"/>
+<rect x="110" y="132" width="10" height="36" rx="2" fill="#b7bdc3"/>
+<rect x="130" y="132" width="10" height="36" rx="2" fill="#b7bdc3"/>
+<rect x="150" y="132" width="10" height="36" rx="2" fill="#b7bdc3"/>
+<rect x="170" y="132" width="10" height="36" rx="2" fill="#b7bdc3"/>
+<rect x="190" y="132" width="10" height="36" rx="2" fill="#b7bdc3"/>
+<rect x="210" y="132" width="10" height="36" rx="2" fill="#b7bdc3"/>
+<rect x="230" y="132" width="10" height="36" rx="2" fill="#b7bdc3"/>
+<rect x="250" y="132" width="10" height="36" rx="2" fill="#b7bdc3"/>
+<rect x="270" y="132" width="10" height="36" rx="2" fill="#b7bdc3"/>
+<rect x="290" y="132" width="10" height="36" rx="2" fill="#b7bdc3"/>
+<rect x="310" y="132" width="10" height="36" rx="2" fill="#b7bdc3"/>
+<rect x="330" y="132" width="10" height="36" rx="2" fill="#b7bdc3"/>
+<rect x="350" y="132" width="10" height="36" rx="2" fill="#b7bdc3"/>
+<rect x="370" y="132" width="10" height="36" rx="2" fill="#b7bdc3"/>
+<text x="250" y="196" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="17" fill="#333" text-anchor="middle" font-weight="bold">POWER SUPPLY</text>
+<text x="250" y="218" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="15" fill="#333" text-anchor="middle" font-weight="normal">24V DC</text>
+<text x="120" y="244" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#333" text-anchor="middle" font-weight="bold">L</text>
+<rect x="108.0" y="249.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="120" cy="261" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="115.0" y1="266.0" x2="125.0" y2="256.0" stroke="#555" stroke-width="1.6"/>
+<text x="160" y="244" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#333" text-anchor="middle" font-weight="bold">N</text>
+<rect x="148.0" y="249.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="160" cy="261" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="155.0" y1="266.0" x2="165.0" y2="256.0" stroke="#555" stroke-width="1.6"/>
+<text x="200" y="244" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#333" text-anchor="middle" font-weight="bold">⏚</text>
+<rect x="188.0" y="249.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="200" cy="261" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="195.0" y1="266.0" x2="205.0" y2="256.0" stroke="#555" stroke-width="1.6"/>
+<text x="250" y="244" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#333" text-anchor="middle" font-weight="bold">−V</text>
+<rect x="238.0" y="249.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="250" cy="261" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="245.0" y1="266.0" x2="255.0" y2="256.0" stroke="#555" stroke-width="1.6"/>
+<text x="290" y="244" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#333" text-anchor="middle" font-weight="bold">−V</text>
+<rect x="278.0" y="249.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="290" cy="261" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="285.0" y1="266.0" x2="295.0" y2="256.0" stroke="#555" stroke-width="1.6"/>
+<text x="330" y="244" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#333" text-anchor="middle" font-weight="bold">+V</text>
+<rect x="318.0" y="249.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="330" cy="261" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="325.0" y1="266.0" x2="335.0" y2="256.0" stroke="#555" stroke-width="1.6"/>
+<text x="370" y="244" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#333" text-anchor="middle" font-weight="bold">+V</text>
+<rect x="358.0" y="249.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="370" cy="261" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="365.0" y1="266.0" x2="375.0" y2="256.0" stroke="#555" stroke-width="1.6"/>
+<rect x="500" y="110" width="760" height="290" rx="10" fill="#1f6f43" stroke="#0f3d24" stroke-width="2"/>
+<circle cx="514" cy="124" r="5" fill="#cfd8dc"/>
+<circle cx="1246" cy="124" r="5" fill="#cfd8dc"/>
+<circle cx="514" cy="386" r="5" fill="#cfd8dc"/>
+<circle cx="1246" cy="386" r="5" fill="#cfd8dc"/>
+<rect x="540" y="140" width="100" height="100" rx="4" fill="#1b1b1b"/>
+<rect x="546" y="132" width="5" height="8" fill="#bbb"/><rect x="546" y="240" width="5" height="8" fill="#bbb"/>
+<rect x="558" y="132" width="5" height="8" fill="#bbb"/><rect x="558" y="240" width="5" height="8" fill="#bbb"/>
+<rect x="570" y="132" width="5" height="8" fill="#bbb"/><rect x="570" y="240" width="5" height="8" fill="#bbb"/>
+<rect x="582" y="132" width="5" height="8" fill="#bbb"/><rect x="582" y="240" width="5" height="8" fill="#bbb"/>
+<rect x="594" y="132" width="5" height="8" fill="#bbb"/><rect x="594" y="240" width="5" height="8" fill="#bbb"/>
+<rect x="606" y="132" width="5" height="8" fill="#bbb"/><rect x="606" y="240" width="5" height="8" fill="#bbb"/>
+<rect x="618" y="132" width="5" height="8" fill="#bbb"/><rect x="618" y="240" width="5" height="8" fill="#bbb"/>
+<rect x="630" y="132" width="5" height="8" fill="#bbb"/><rect x="630" y="240" width="5" height="8" fill="#bbb"/>
+<text x="590" y="196" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="15" fill="#ddd" text-anchor="middle" font-weight="bold">STM32</text>
+<text x="680" y="162" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="20" fill="#fff" text-anchor="start" font-weight="bold">บอร์ด I/O  SCH_XPLCV1</text>
+<text x="680" y="188" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="15" fill="#e8f5e9" text-anchor="start" font-weight="normal">192.168.0.100 · Modbus TCP พอร์ต 502</text>
+<text x="680" y="212" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#ffe082" text-anchor="start" font-weight="normal">FW:133 · ห้ามแฟลชทับ (ไม่มี source)</text>
+<rect x="1255" y="148" width="46" height="44" rx="3" fill="#cfd4d8" stroke="#555" stroke-width="1.5"/>
+<rect x="1266" y="158" width="26" height="24" fill="#2b2b2b"/>
+<text x="1312" y="162" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#555" text-anchor="start" font-weight="normal">LAN</text>
+<rect x="526" y="358" width="56" height="34" rx="3" fill="#2e7d32" stroke="#0f3d24"/>
+<text x="554.0" y="300" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="12" fill="#fff" text-anchor="middle" font-weight="bold">POWER</text>
+<text x="540" y="348" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="normal">+24</text>
+<rect x="528.0" y="363.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="540" cy="375" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="535.0" y1="380.0" x2="545.0" y2="370.0" stroke="#555" stroke-width="1.6"/>
+<text x="568" y="348" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="normal">0V</text>
+<rect x="556.0" y="363.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="568" cy="375" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="563.0" y1="380.0" x2="573.0" y2="370.0" stroke="#555" stroke-width="1.6"/>
+<rect x="606" y="358" width="112" height="34" rx="3" fill="#2e7d32" stroke="#0f3d24"/>
+<text x="662.0" y="300" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="12" fill="#fff" text-anchor="middle" font-weight="bold">INPUT</text>
+<circle cx="620" cy="318" r="4.5" fill="#9e9e9e" stroke="#333"/>
+<text x="620" y="348" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="normal">8.6</text>
+<rect x="608.0" y="363.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="620" cy="375" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="615.0" y1="380.0" x2="625.0" y2="370.0" stroke="#555" stroke-width="1.6"/>
+<circle cx="648" cy="318" r="4.5" fill="#9e9e9e" stroke="#333"/>
+<text x="648" y="348" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="normal">8.7</text>
+<rect x="636.0" y="363.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="648" cy="375" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="643.0" y1="380.0" x2="653.0" y2="370.0" stroke="#555" stroke-width="1.6"/>
+<circle cx="676" cy="318" r="4.5" fill="#9e9e9e" stroke="#333"/>
+<text x="676" y="348" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="normal">–</text>
+<rect x="664.0" y="363.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="676" cy="375" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="671.0" y1="380.0" x2="681.0" y2="370.0" stroke="#555" stroke-width="1.6"/>
+<circle cx="704" cy="318" r="4.5" fill="#9e9e9e" stroke="#333"/>
+<text x="704" y="348" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="normal">–</text>
+<rect x="692.0" y="363.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="704" cy="375" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="699.0" y1="380.0" x2="709.0" y2="370.0" stroke="#555" stroke-width="1.6"/>
+<rect x="766" y="358" width="210" height="34" rx="3" fill="#2e7d32" stroke="#0f3d24"/>
+<text x="871.0" y="300" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="12" fill="#fff" text-anchor="middle" font-weight="bold">OP0 · coil 64 · ไฟสถานะ FSM</text>
+<circle cx="780" cy="318" r="4.5" fill="#9e9e9e" stroke="#333"/>
+<text x="780" y="348" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="normal">0</text>
+<rect x="768.0" y="363.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="780" cy="375" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="775.0" y1="380.0" x2="785.0" y2="370.0" stroke="#555" stroke-width="1.6"/>
+<circle cx="806" cy="318" r="4.5" fill="#9e9e9e" stroke="#333"/>
+<text x="806" y="348" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="normal">1</text>
+<rect x="794.0" y="363.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="806" cy="375" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="801.0" y1="380.0" x2="811.0" y2="370.0" stroke="#555" stroke-width="1.6"/>
+<circle cx="832" cy="318" r="4.5" fill="#9e9e9e" stroke="#333"/>
+<text x="832" y="348" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="normal">2</text>
+<rect x="820.0" y="363.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="832" cy="375" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="827.0" y1="380.0" x2="837.0" y2="370.0" stroke="#555" stroke-width="1.6"/>
+<circle cx="858" cy="318" r="4.5" fill="#9e9e9e" stroke="#333"/>
+<text x="858" y="348" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="normal">3</text>
+<rect x="846.0" y="363.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="858" cy="375" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="853.0" y1="380.0" x2="863.0" y2="370.0" stroke="#555" stroke-width="1.6"/>
+<circle cx="884" cy="318" r="4.5" fill="#9e9e9e" stroke="#333"/>
+<text x="884" y="348" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="normal">4</text>
+<rect x="872.0" y="363.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="884" cy="375" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="879.0" y1="380.0" x2="889.0" y2="370.0" stroke="#555" stroke-width="1.6"/>
+<circle cx="910" cy="318" r="4.5" fill="#9e9e9e" stroke="#333"/>
+<text x="910" y="348" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="normal">5</text>
+<rect x="898.0" y="363.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="910" cy="375" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="905.0" y1="380.0" x2="915.0" y2="370.0" stroke="#555" stroke-width="1.6"/>
+<circle cx="936" cy="318" r="4.5" fill="#9e9e9e" stroke="#333"/>
+<text x="936" y="348" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="normal">6</text>
+<rect x="924.0" y="363.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="936" cy="375" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="931.0" y1="380.0" x2="941.0" y2="370.0" stroke="#555" stroke-width="1.6"/>
+<circle cx="962" cy="318" r="4.5" fill="#9e9e9e" stroke="#333"/>
+<text x="962" y="348" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="normal">7</text>
+<rect x="950.0" y="363.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="962" cy="375" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="957.0" y1="380.0" x2="967.0" y2="370.0" stroke="#555" stroke-width="1.6"/>
+<rect x="1016" y="358" width="210" height="34" rx="3" fill="#2e7d32" stroke="#0f3d24"/>
+<text x="1121.0" y="300" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="12" fill="#fff" text-anchor="middle" font-weight="bold">OP1 · coil 72</text>
+<circle cx="1030" cy="318" r="4.5" fill="#9e9e9e" stroke="#333"/>
+<text x="1030" y="348" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="normal">0</text>
+<rect x="1018.0" y="363.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="1030" cy="375" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="1025.0" y1="380.0" x2="1035.0" y2="370.0" stroke="#555" stroke-width="1.6"/>
+<circle cx="1056" cy="318" r="4.5" fill="#9e9e9e" stroke="#333"/>
+<text x="1056" y="348" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="normal">1</text>
+<rect x="1044.0" y="363.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="1056" cy="375" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="1051.0" y1="380.0" x2="1061.0" y2="370.0" stroke="#555" stroke-width="1.6"/>
+<circle cx="1082" cy="318" r="4.5" fill="#9e9e9e" stroke="#333"/>
+<text x="1082" y="348" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="normal">2</text>
+<rect x="1070.0" y="363.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="1082" cy="375" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="1077.0" y1="380.0" x2="1087.0" y2="370.0" stroke="#555" stroke-width="1.6"/>
+<circle cx="1108" cy="318" r="4.5" fill="#9e9e9e" stroke="#333"/>
+<text x="1108" y="348" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="normal">3</text>
+<rect x="1096.0" y="363.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="1108" cy="375" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="1103.0" y1="380.0" x2="1113.0" y2="370.0" stroke="#555" stroke-width="1.6"/>
+<circle cx="1134" cy="318" r="4.5" fill="#9e9e9e" stroke="#333"/>
+<text x="1134" y="348" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="normal">4</text>
+<rect x="1122.0" y="363.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="1134" cy="375" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="1129.0" y1="380.0" x2="1139.0" y2="370.0" stroke="#555" stroke-width="1.6"/>
+<circle cx="1160" cy="318" r="4.5" fill="#9e9e9e" stroke="#333"/>
+<text x="1160" y="348" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="normal">5</text>
+<rect x="1148.0" y="363.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="1160" cy="375" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="1155.0" y1="380.0" x2="1165.0" y2="370.0" stroke="#555" stroke-width="1.6"/>
+<circle cx="1186" cy="318" r="4.5" fill="#9e9e9e" stroke="#333"/>
+<text x="1186" y="348" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="normal">6</text>
+<rect x="1174.0" y="363.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="1186" cy="375" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="1181.0" y1="380.0" x2="1191.0" y2="370.0" stroke="#555" stroke-width="1.6"/>
+<circle cx="1212" cy="318" r="4.5" fill="#9e9e9e" stroke="#333"/>
+<text x="1212" y="348" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="normal">7</text>
+<rect x="1200.0" y="363.0" width="24" height="24" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="1212" cy="375" r="7.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="1207.0" y1="380.0" x2="1217.0" y2="370.0" stroke="#555" stroke-width="1.6"/>
+<rect x="1372" y="110" width="176" height="118" rx="6" fill="#2b2f36"/>
+<rect x="1380" y="118" width="160" height="100" fill="#3d7bd9"/>
+<text x="1460" y="156" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="18" fill="#fff" text-anchor="middle" font-weight="bold">PC</text>
+<text x="1460" y="178" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="12" fill="#fff" text-anchor="middle" font-weight="normal">gateway + rust_bridge</text>
+<text x="1460" y="198" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="12" fill="#fff" text-anchor="middle" font-weight="normal">192.168.0.55</text>
+<path d="M1352 228 H1568 L1580 248 H1340 Z" fill="#9aa3ad" stroke="#555"/>
+<text x="1460" y="268" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="12" fill="#444" text-anchor="middle" font-weight="normal">LAN ผ่าน USB-LAN (อีเทอร์เน็ต 3)</text>
+<rect x="1360" y="300" width="100" height="70" rx="4" fill="#1f6f43"/>
+<rect x="1368" y="306" width="84" height="56" fill="#0d2b52"/>
+<text x="1410" y="339" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="14" fill="#fff" text-anchor="middle" font-weight="bold">HMI</text>
+<text x="1410" y="390" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="12" fill="#444" text-anchor="middle" font-weight="normal">จอ HMI · USB COM7</text>
+<rect x="1490" y="300" width="60" height="60" rx="4" fill="#222"/>
+<circle cx="1520" cy="330" r="17" fill="#555" stroke="#999" stroke-width="2"/><circle cx="1520" cy="330" r="7" fill="#111"/>
+<text x="1520" y="390" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="12" fill="#444" text-anchor="middle" font-weight="normal">Camera · COM10</text>
+<rect x="768" y="538" width="5" height="10" fill="#888"/><rect x="783" y="538" width="5" height="10" fill="#888"/>
+<rect x="760" y="548" width="35" height="94" rx="3" fill="#333"/>
+<text x="777" y="600" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="bold">SOL</text>
+<rect x="795" y="560" width="75" height="70" rx="3" fill="#cfd8dc" stroke="#555" stroke-width="1.2"/>
+<path d="M870 580 l8 5 l-8 5 l8 5 l-8 5 l8 5" fill="none" stroke="#555" stroke-width="1.5"/>
+<text x="832" y="590" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#263238" text-anchor="middle" font-weight="bold">วาล์ว A</text>
+<text x="832" y="610" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#455a64" text-anchor="middle" font-weight="normal">+ / −</text>
+<rect x="810" y="630" width="10" height="8" fill="#888"/>
+<rect x="835" y="630" width="10" height="8" fill="#888"/>
+<rect x="855" y="630" width="10" height="8" fill="#888"/>
+<rect x="791" y="704" width="68" height="14" rx="3" fill="#90a4ae"/>
+<rect x="795" y="712" width="60" height="168" fill="#e0e5e8" stroke="#78909c" stroke-width="1.5"/>
+<rect x="791" y="874" width="68" height="14" rx="3" fill="#90a4ae"/>
+<rect x="819" y="888" width="12" height="57" fill="#b0bec5" stroke="#78909c"/>
+<rect x="810" y="945" width="30" height="13" rx="2" fill="#78909c"/>
+<text x="825" y="990" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#263238" text-anchor="middle" font-weight="bold">กระบอกซีล A</text>
+<rect x="918" y="538" width="5" height="10" fill="#888"/><rect x="933" y="538" width="5" height="10" fill="#888"/>
+<rect x="910" y="548" width="35" height="94" rx="3" fill="#333"/>
+<text x="927" y="600" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="bold">SOL</text>
+<rect x="945" y="560" width="75" height="70" rx="3" fill="#cfd8dc" stroke="#555" stroke-width="1.2"/>
+<path d="M1020 580 l8 5 l-8 5 l8 5 l-8 5 l8 5" fill="none" stroke="#555" stroke-width="1.5"/>
+<text x="982" y="590" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#263238" text-anchor="middle" font-weight="bold">วาล์ว B</text>
+<text x="982" y="610" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#455a64" text-anchor="middle" font-weight="normal">+ / −</text>
+<rect x="960" y="630" width="10" height="8" fill="#888"/>
+<rect x="985" y="630" width="10" height="8" fill="#888"/>
+<rect x="1005" y="630" width="10" height="8" fill="#888"/>
+<rect x="941" y="704" width="68" height="14" rx="3" fill="#90a4ae"/>
+<rect x="945" y="712" width="60" height="168" fill="#e0e5e8" stroke="#78909c" stroke-width="1.5"/>
+<rect x="941" y="874" width="68" height="14" rx="3" fill="#90a4ae"/>
+<rect x="969" y="888" width="12" height="57" fill="#b0bec5" stroke="#78909c"/>
+<rect x="960" y="945" width="30" height="13" rx="2" fill="#78909c"/>
+<text x="975" y="990" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#263238" text-anchor="middle" font-weight="bold">กระบอกซีล B</text>
+<rect x="1068" y="538" width="5" height="10" fill="#888"/><rect x="1083" y="538" width="5" height="10" fill="#888"/>
+<rect x="1060" y="548" width="35" height="94" rx="3" fill="#333"/>
+<text x="1077" y="600" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="bold">SOL</text>
+<rect x="1095" y="560" width="75" height="70" rx="3" fill="#cfd8dc" stroke="#555" stroke-width="1.2"/>
+<path d="M1170 580 l8 5 l-8 5 l8 5 l-8 5 l8 5" fill="none" stroke="#555" stroke-width="1.5"/>
+<text x="1132" y="590" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#263238" text-anchor="middle" font-weight="bold">วาล์ว C</text>
+<text x="1132" y="610" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#455a64" text-anchor="middle" font-weight="normal">+ / −</text>
+<rect x="1110" y="630" width="10" height="8" fill="#888"/>
+<rect x="1135" y="630" width="10" height="8" fill="#888"/>
+<rect x="1155" y="630" width="10" height="8" fill="#888"/>
+<rect x="1091" y="704" width="68" height="14" rx="3" fill="#90a4ae"/>
+<rect x="1095" y="712" width="60" height="168" fill="#e0e5e8" stroke="#78909c" stroke-width="1.5"/>
+<rect x="1091" y="874" width="68" height="14" rx="3" fill="#90a4ae"/>
+<rect x="1119" y="888" width="12" height="57" fill="#b0bec5" stroke="#78909c"/>
+<rect x="1110" y="945" width="30" height="13" rx="2" fill="#78909c"/>
+<text x="1125" y="990" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#263238" text-anchor="middle" font-weight="bold">Cylinder C (INIT)</text>
+<rect x="1215" y="540" width="235" height="220" rx="6" fill="#2b2b2b" stroke="#111"/>
+<rect x="1226.0" y="543.0" width="22" height="22" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="1237" cy="554" r="6.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="1233.0" y1="558.0" x2="1241.0" y2="550.0" stroke="#555" stroke-width="1.6"/>
+<text x="1237" y="580" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="10" fill="#fff" text-anchor="middle" font-weight="normal">PUL+</text>
+<rect x="1252.0" y="543.0" width="22" height="22" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="1263" cy="554" r="6.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="1259.0" y1="558.0" x2="1267.0" y2="550.0" stroke="#555" stroke-width="1.6"/>
+<text x="1263" y="580" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="10" fill="#fff" text-anchor="middle" font-weight="normal">PUL−</text>
+<rect x="1278.0" y="543.0" width="22" height="22" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="1289" cy="554" r="6.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="1285.0" y1="558.0" x2="1293.0" y2="550.0" stroke="#555" stroke-width="1.6"/>
+<text x="1289" y="580" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="10" fill="#fff" text-anchor="middle" font-weight="normal">DIR+</text>
+<rect x="1304.0" y="543.0" width="22" height="22" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="1315" cy="554" r="6.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="1311.0" y1="558.0" x2="1319.0" y2="550.0" stroke="#555" stroke-width="1.6"/>
+<text x="1315" y="580" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="10" fill="#fff" text-anchor="middle" font-weight="normal">DIR−</text>
+<rect x="1330.0" y="543.0" width="22" height="22" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="1341" cy="554" r="6.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="1337.0" y1="558.0" x2="1345.0" y2="550.0" stroke="#555" stroke-width="1.6"/>
+<text x="1341" y="580" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="10" fill="#fff" text-anchor="middle" font-weight="normal">ENA+</text>
+<rect x="1356.0" y="543.0" width="22" height="22" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="1367" cy="554" r="6.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="1363.0" y1="558.0" x2="1371.0" y2="550.0" stroke="#555" stroke-width="1.6"/>
+<text x="1367" y="580" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="10" fill="#fff" text-anchor="middle" font-weight="normal">ENA−</text>
+<rect x="1389.0" y="543.0" width="22" height="22" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="1400" cy="554" r="6.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="1396.0" y1="558.0" x2="1404.0" y2="550.0" stroke="#555" stroke-width="1.6"/>
+<text x="1400" y="580" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="10" fill="#fff" text-anchor="middle" font-weight="normal">V+</text>
+<rect x="1415.0" y="543.0" width="22" height="22" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="1426" cy="554" r="6.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="1422.0" y1="558.0" x2="1430.0" y2="550.0" stroke="#555" stroke-width="1.6"/>
+<text x="1426" y="580" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="10" fill="#fff" text-anchor="middle" font-weight="normal">GND</text>
+<rect x="1235" y="614" width="12" height="30" rx="2" fill="#3a3a3a"/>
+<rect x="1257" y="614" width="12" height="30" rx="2" fill="#3a3a3a"/>
+<rect x="1279" y="614" width="12" height="30" rx="2" fill="#3a3a3a"/>
+<rect x="1301" y="614" width="12" height="30" rx="2" fill="#3a3a3a"/>
+<rect x="1323" y="614" width="12" height="30" rx="2" fill="#3a3a3a"/>
+<rect x="1345" y="614" width="12" height="30" rx="2" fill="#3a3a3a"/>
+<rect x="1367" y="614" width="12" height="30" rx="2" fill="#3a3a3a"/>
+<rect x="1389" y="614" width="12" height="30" rx="2" fill="#3a3a3a"/>
+<rect x="1411" y="614" width="12" height="30" rx="2" fill="#3a3a3a"/>
+<text x="1332.5" y="606" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="12" fill="#ffcc80" text-anchor="middle" font-weight="normal">DIR / ENA / ALM ไม่ได้ต่อ</text>
+<text x="1332.5" y="666" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="15" fill="#fff" text-anchor="middle" font-weight="bold">MISUMI E-EDR57A</text>
+<rect x="1265" y="676" width="136" height="22" rx="2" fill="#c62828"/>
+<rect x="1271" y="688" width="9" height="8" fill="#fff"/>
+<rect x="1287" y="688" width="9" height="8" fill="#fff"/>
+<rect x="1303" y="688" width="9" height="8" fill="#fff"/>
+<rect x="1319" y="688" width="9" height="8" fill="#fff"/>
+<rect x="1335" y="688" width="9" height="8" fill="#fff"/>
+<rect x="1351" y="680" width="9" height="8" fill="#fff"/>
+<rect x="1367" y="688" width="9" height="8" fill="#fff"/>
+<rect x="1383" y="688" width="9" height="8" fill="#fff"/>
+<text x="1332.5" y="714" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="11" fill="#ddd" text-anchor="middle" font-weight="normal">DIP: SW6 = ON (open loop)</text>
+<rect x="1249.0" y="735.0" width="22" height="22" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="1260" cy="746" r="6.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="1256.0" y1="750.0" x2="1264.0" y2="742.0" stroke="#555" stroke-width="1.6"/>
+<text x="1260" y="730" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="10" fill="#fff" text-anchor="middle" font-weight="normal">A+</text>
+<rect x="1275.0" y="735.0" width="22" height="22" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="1286" cy="746" r="6.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="1282.0" y1="750.0" x2="1290.0" y2="742.0" stroke="#555" stroke-width="1.6"/>
+<text x="1286" y="730" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="10" fill="#fff" text-anchor="middle" font-weight="normal">A−</text>
+<rect x="1301.0" y="735.0" width="22" height="22" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="1312" cy="746" r="6.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="1308.0" y1="750.0" x2="1316.0" y2="742.0" stroke="#555" stroke-width="1.6"/>
+<text x="1312" y="730" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="10" fill="#fff" text-anchor="middle" font-weight="normal">B+</text>
+<rect x="1327.0" y="735.0" width="22" height="22" rx="3" fill="#e9e9e9" stroke="#555" stroke-width="1.2"/>
+<circle cx="1338" cy="746" r="6.0" fill="#b9b9b9" stroke="#666" stroke-width="1"/>
+<line x1="1334.0" y1="750.0" x2="1342.0" y2="742.0" stroke="#555" stroke-width="1.6"/>
+<text x="1338" y="730" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="10" fill="#fff" text-anchor="middle" font-weight="normal">B−</text>
+<rect x="1472" y="770" width="108" height="108" rx="8" fill="#4a4f55" stroke="#222" stroke-width="1.5"/>
+<circle cx="1484" cy="782" r="5" fill="#222"/>
+<circle cx="1568" cy="782" r="5" fill="#222"/>
+<circle cx="1484" cy="866" r="5" fill="#222"/>
+<circle cx="1568" cy="866" r="5" fill="#222"/>
+<circle cx="1526" cy="824" r="26" fill="#6b7178" stroke="#222"/><circle cx="1526" cy="824" r="7" fill="#ccc"/>
+<text x="1526" y="760" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="12" fill="#333" text-anchor="middle" font-weight="bold">มอเตอร์ E-57ESTM02</text>
+<text x="382" y="432" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="14" fill="#8d4a1f" text-anchor="start" font-weight="bold">+24V</text>
+<text x="262" y="482" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="14" fill="#1f5fbf" text-anchor="start" font-weight="bold">0V</text>
+<rect x="30" y="500" width="425" height="470" rx="8" fill="#fafafa" stroke="#bbb"/>
+<text x="48" y="530" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="16" fill="#111" text-anchor="start" font-weight="bold">สีสาย</text>
+<path d="M50 551 H100" fill="none" stroke="#8d4a1f" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="114" y="556" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#333" text-anchor="start" font-weight="normal">+24V DC</text>
+<path d="M50 575 H100" fill="none" stroke="#1f5fbf" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="114" y="580" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#333" text-anchor="start" font-weight="normal">0V (คอมมอน)</text>
+<path d="M50 599 H100" fill="none" stroke="#ef7d00" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="114" y="604" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#333" text-anchor="start" font-weight="normal">เอาต์พุต 24V จากบอร์ด (สั่งงาน)</text>
+<path d="M50 623 H100" fill="none" stroke="#8a8f98" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="114" y="628" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#333" text-anchor="start" font-weight="normal">สาย LAN / USB</text>
+<path d="M50 647 H100" fill="none" stroke="#9fd0ef" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<text x="114" y="652" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#333" text-anchor="start" font-weight="normal">ท่อลม</text>
+<path d="M50 671 H100" fill="none" stroke="#d32f2f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="7 5"/>
+<text x="114" y="676" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#333" text-anchor="start" font-weight="normal">ยังไม่ยืนยัน / repo ไม่ได้บันทึก</text>
+<text x="48" y="708" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="16" fill="#111" text-anchor="start" font-weight="bold">เอาต์พุต</text>
+<text x="48" y="732" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#111" text-anchor="start" font-weight="bold">OP1.0</text>
+<text x="150" y="732" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#333" text-anchor="start" font-weight="normal">โซลินอยด์ A → กระบอกซีล A</text>
+<text x="48" y="753" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#111" text-anchor="start" font-weight="bold">OP1.1</text>
+<text x="150" y="753" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#333" text-anchor="start" font-weight="normal">โซลินอยด์ B → กระบอกซีล B</text>
+<text x="48" y="774" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#111" text-anchor="start" font-weight="bold">OP1.2</text>
+<text x="150" y="774" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#333" text-anchor="start" font-weight="normal">วาล์ว Cylinder C (ปุ่ม INIT)</text>
+<text x="48" y="795" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#111" text-anchor="start" font-weight="bold">OP1.4</text>
+<text x="150" y="795" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#333" text-anchor="start" font-weight="normal">PUL+ ไดรเวอร์มอเตอร์ feed</text>
+<text x="48" y="816" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#111" text-anchor="start" font-weight="bold">OP1.3,5–7</text>
+<text x="150" y="816" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#333" text-anchor="start" font-weight="normal">ว่าง / ยังไม่รู้ว่าต่ออะไร</text>
+<text x="48" y="837" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#111" text-anchor="start" font-weight="bold">OP0.0–3</text>
+<text x="150" y="837" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="13" fill="#333" text-anchor="start" font-weight="normal">ไฟ FEED / SEAL / TAKEUP / ALARM</text>
+<text x="48" y="868" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="16" fill="#111" text-anchor="start" font-weight="bold">หมายเหตุ</text>
+<text x="48" y="890" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="12" fill="#444" text-anchor="start" font-weight="normal">• ตำแหน่งขั้วบนบอร์ด/ไดรเวอร์เป็นภาพแทน ไม่ใช่ layout จริง</text>
+<text x="48" y="909" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="12" fill="#444" text-anchor="start" font-weight="normal">• เส้นตัดกันโดยไม่มีจุด = ไม่ได้ต่อกัน</text>
+<text x="48" y="928" font-family="'Leelawadee UI','Tahoma',sans-serif" font-size="12" fill="#444" text-anchor="start" font-weight="normal">• วาล์วเป็นโซลินอยด์เดี่ยว สปริงดันกลับ · DOWN = จ่ายไฟ</text>
+</svg>

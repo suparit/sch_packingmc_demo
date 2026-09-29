@@ -1,0 +1,83 @@
+@import 'tailwindcss';
+
+/* โทนสีของเว็บ — ตั้งใจเป็น dark ล้วน (โชว์โมเดล 3D + ห้องควบคุม) */
+@theme {
+  --font-sans: 'Inter', 'Noto Sans Thai', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', monospace;
+
+  --color-ink-950: #05070d;
+  --color-ink-900: #0a0e18;
+  --color-ink-800: #111827;
+}
+
+html {
+  background: var(--color-ink-950);
+  color-scheme: dark;
+}
+
+body {
+  margin: 0;
+  background: var(--color-ink-950);
+  color: #e5e9f2;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* การ์ดกระจก — ใช้ซ้ำทุกการ์ด / HUD */
+@utility glass {
+  background: linear-gradient(135deg, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0.025));
+  border: 1px solid rgb(255 255 255 / 0.1);
+  box-shadow:
+    0 1px 0 0 rgb(255 255 255 / 0.06) inset,
+    0 20px 40px -20px rgb(0 0 0 / 0.6);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.45; transform: scale(0.8); }
+}
+.pulse-dot {
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}
+
+@keyframes scroll-cue {
+  0% { transform: translateY(0); opacity: 0; }
+  30% { opacity: 1; }
+  100% { transform: translateY(10px); opacity: 0; }
+}
+.scroll-cue {
+  animation: scroll-cue 1.8s ease-in-out infinite;
+}
+
+@keyframes flow-dash {
+  to { stroke-dashoffset: -24; }
+}
+.flow-dash {
+  stroke-dasharray: 6 6;
+  animation: flow-dash 1.2s linear infinite;
+}
+
+/* เส้นสแกนวิ่งลงบนจอ HMI ตอนเปลี่ยนหน้า */
+@keyframes hmi-scan {
+  from { transform: translateY(-100%); opacity: 1; }
+  to { transform: translateY(300%); opacity: 0; }
+}
+.hmi-scan {
+  background: linear-gradient(to bottom, transparent, rgb(56 189 248 / 0.35) 85%, rgb(186 230 253 / 0.9));
+  animation: hmi-scan 900ms ease-out forwards;
+}
+
+/* คำอธิบายหน้าจอ HMI ค่อย ๆ โผล่เมื่อเปลี่ยนหน้า */
+@keyframes hmi-fade {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+.hmi-fade {
+  animation: hmi-fade 450ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse-dot, .scroll-cue, .flow-dash, .hmi-scan, .hmi-fade { animation: none; }
+}

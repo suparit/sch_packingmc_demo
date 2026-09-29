@@ -1,0 +1,6 @@
+# Python 3.13 (cp313) — ต้องใช้เวอร์ชันที่มี wheel สำเร็จรูป
+# ห้าม build จาก source เพราะ path มีภาษาไทย จะพัง charmap encode
+opencv-python>=4.11
+numpy>=2.1
+pyserial==3.5
+websocket-client>=1.8

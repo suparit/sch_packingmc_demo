@@ -1,0 +1,111 @@
+{
+  "title": "AUTOMATED VISION TESTING SYSTEM",
+  "subtitle": "Taping Machine Controller · OCR Inspection",
+  "fields": [
+    {
+      "name": "BRAND",
+      "pattern": "BRAND_TEXT",
+      "required": true,
+      "note": "ใส่ข้อความยี่ห้อที่พิมพ์บนชิ้นงาน (ตัวพิมพ์ใหญ่) · ถ้าตัวอักษรริมขอบจางจน OCR อ่านไม่ครบ ให้ตัดตัวท้ายออก"
+    },
+    {
+      "name": "PART NR",
+      "pattern": "PART-MODEL-A",
+      "patterns": [
+        "PART-MODEL-A",
+        "PART-MODEL-B"
+      ],
+      "patterns_note": "ใส่รหัสรุ่นของชิ้นงานที่ยอมรับ (ใช้ patterns ก่อน pattern) · ระบบเทียบหลังตัดจุด/ช่องว่างออก",
+      "required": true
+    },
+    {
+      "name": "RATING",
+      "pattern": "RATING_TEXT",
+      "required": false
+    },
+    {
+      "name": "DATE",
+      "pattern": "^\\d{2}/\\d{4}",
+      "regex": true,
+      "required": false
+    }
+  ],
+  "min_confidence": 0.8,
+  "max_char_errors": 0,
+  "rotate": 0,
+  "ocr_engine": "paddle",
+  "ocr_device": "",
+  "average_frames": 4,
+  "vote_frames": 5,
+  "min_votes": 2,
+  "decision_mode": "snapshot",
+  "snapshot": {
+    "settle_s": 0.5,
+    "max_tries": 3,
+    "retry_gap_s": 0.3,
+    "note": "28 ก.ย. 2569 พี่เลี้ยงแนะนำถ่ายภาพนิ่งแล้วค่อยอ่าน · ถอยกลับแบบเดิม = decision_mode \"vote\""
+  },
+  "save_captures": true,
+  "gateway_url": "ws://127.0.0.1:8765",
+  "web_port": 5000,
+  "auto_center": {
+    "enabled": true,
+    "crop_scale": 2.7,
+    "min_radius": 290,
+    "max_radius": 420,
+    "max_jump_px": 520,
+    "hough_param2": 32,
+    "hough_note": "25 ก.ย.: 40 -> 32 ชิ้นงานขอบจางหาไม่เจอ · ต่ำลง = หาง่ายขึ้นแต่เสี่ยงวงหลอก",
+    "max_jump_note": "25 ก.ย.: 400 -> 520 (< ครึ่งหลุม 533 px) — expected_center ใช้แค่เลือกว่าตรวจชิ้นไหน ไม่ใช้ตัดสินตำแหน่งแล้ว"
+  },
+  "orientation": {
+    "enabled": true,
+    "anchor": "PART NR",
+    "max_angle_deg": 15,
+    "search_rotations": true,
+    "required": true
+  },
+  "pixel_format": "mono12",
+  "stretch_percentiles": [
+    2,
+    98
+  ],
+  "conditions": {
+    "presence": {
+      "required": true
+    },
+    "position": {
+      "required": true,
+      "max_offset_px": 170,
+      "note": "24 ก.ย.: 120 -> 170 เพราะขาจับใหม่ขยายภาพ 1.4 เท่า (รัศมีชิ้นงาน 252 -> 352 px) ให้ระยะจริงบนชิ้นงานเท่าเดิม — ปรับตามสัดส่วนทุกครั้งที่เปลี่ยนระยะกล้อง/เลนส์",
+      "mode": "in_pocket",
+      "pocket": {
+        "x_left": 325,
+        "x_right": 1525,
+        "height_px": 885,
+        "web_px": 184,
+        "pitch_px": 1066,
+        "tol_px": 25,
+        "min_rim_strength": 6.0,
+        "rim_polarity": "web_band",
+        "min_web_contrast": 5.0,
+        "note_28sep": "28 ก.ย. 2569: x_left/x_right 480/1651 -> 325/1525 (กล้องเลื่อน ~120 px) · หลอดไฟใหม่ทำให้สันล่างกลับทิศ เป็นในหลุมมืด -> ผิวเทปสว่าง -> ใช้ web_band (หาแถบผิวเทปสว่างระหว่างหลุมแทนสันเส้นเดียว) · ไฟชุดเดิม = bright_to_dark",
+        "note": "25 ก.ย. 2569: ถูกตำแหน่ง = อยู่ในหลุม + หันถูกทาง (เลิกเทียบ expected_center) · ค่า px วัดจากภาพจริง (หลุม 24 mm = 1066 px) ต้องวัดใหม่ถ้าเปลี่ยนระยะกล้อง/เลนส์ · mode=offset = กลับไปใช้ max_offset_px แบบเดิม"
+      }
+    },
+    "text_visible": {
+      "required": true,
+      "min_lines": 2
+    },
+    "readable": {
+      "required": true,
+      "note": "เปิดบังคับ 24 ก.ย. 2569 หลังบังแสงเพดานด้านบน อ่านครบ 5 บรรทัด 10/10 — ถ้าไม่บังแสง/ไม่มีไฟด้านข้าง ข้อนี้จะ FAIL บ่อย (แสงห้องอย่างเดียวได้ 0-6/10)"
+    }
+  },
+  "expected_center": [
+    952,
+    500
+  ],
+  "expected_center_note": "28 ก.ย. 2569: เดิม (1192, 952) ก่อนกล้องเลื่อน ~120 px + ตั้ง index ใหม่ — ชิ้นงานจริงอยู่ ~(952, 496) ห่างจุดเดิม 515 px จนกล้องเลือกวงหลอกในหลุมว่างด้านล่าง (1136, 1276) แทน · ใช้เลือกว่าตรวจชิ้นไหนเท่านั้น",
+  "_note_submission": "ค่าในช่อง fields เป็นตัวอย่าง — ข้อความบนชิ้นงานจริงเป็นข้อมูลลูกค้า ไม่ได้ใส่ไว้ใน repo นี้"
+}
