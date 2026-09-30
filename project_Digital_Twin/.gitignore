@@ -1,0 +1,26 @@
+# สร้างใหม่ได้ / ขนาดใหญ่
+node_modules/
+.next/
+out/
+target/
+.venv/
+.venv-*/
+__pycache__/
+*.pyc
+
+# ข้อมูลที่เกิดตอนรัน
+*.db
+01_DigitalTwin/python_backend/exports/
+*.log
+
+# กล้อง — ภาพชิ้นงานจริงเป็นข้อมูลลูกค้า ห้าม commit
+03_Vision/ocr/captures/
+03_Vision/ocr/sweep/
+03_Vision/ocr/bench*/
+03_Vision/ocr/*.png
+03_Vision/ocr/*.jpg
+03_Vision/ocr/*.npz
+03_Vision/ocr/STOP
+
+# โมเดล 3D — ใช้ cad/export/machine.glb ของ repo นี้ (ดู README)
+*.glb
