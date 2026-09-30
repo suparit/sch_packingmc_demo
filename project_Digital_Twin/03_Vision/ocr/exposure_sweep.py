@@ -36,7 +36,7 @@ HERE = Path(__file__).resolve().parent
 _part = next((f for f in CONFIG["fields"] if f["name"] == "PART NR"), {"pattern": "PART-MODEL-A"})
 TARGETS = [normalize(p) for p in (_part.get("patterns") or [_part["pattern"]])]
 TARGET = TARGETS[0]
-# ตัวที่ OCR สับสนกันบ่อย — ภาพของพี่เลี้ยงเองยังอ่านได้ RE1OO-1-10M (0 เป็น O)
+# ตัวที่ OCR สับสนกันบ่อย — ภาพของพี่เลี้ยงเองยังอ่านเลข 0 เป็นตัว O และ 1 เป็นตัว I
 LOOKALIKE = str.maketrans({"O": "0", "I": "1"})
 
 
